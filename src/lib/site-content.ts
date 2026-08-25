@@ -217,7 +217,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   },
   benefits: DEFAULT_BENEFITS,
   testimonials: DEFAULT_TESTIMONIALS,
-  categories: [],
+  categories: defaultCategories,
   featuredProductIds: ["frame-001", "frame-002", "frame-004", "frame-005"],
   newArrivalProductIds: ["frame-003", "frame-006", "frame-007", "frame-010"],
   shopByStyleProductIds: ["frame-001", "frame-003", "frame-005", "frame-008"],
@@ -269,7 +269,9 @@ function mergeContent(saved: Partial<SiteContent>): SiteContent {
     },
     benefits: saved.benefits ?? DEFAULT_SITE_CONTENT.benefits,
     testimonials: saved.testimonials ?? DEFAULT_SITE_CONTENT.testimonials,
-    categories: saved.categories ?? DEFAULT_SITE_CONTENT.categories,
+    categories: saved.categories?.length
+      ? saved.categories
+      : DEFAULT_SITE_CONTENT.categories,
     featuredProductIds: saved.featuredProductIds ?? DEFAULT_SITE_CONTENT.featuredProductIds,
     newArrivalProductIds: saved.newArrivalProductIds ?? DEFAULT_SITE_CONTENT.newArrivalProductIds,
     shopByStyleProductIds: saved.shopByStyleProductIds ?? DEFAULT_SITE_CONTENT.shopByStyleProductIds,

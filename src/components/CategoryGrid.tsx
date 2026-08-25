@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { DEFAULT_SITE_CONTENT, getSiteContent, hydrateSiteContent, AdminCategory } from "@/lib/site-content";
+import { getSiteContent, hydrateSiteContent, AdminCategory } from "@/lib/site-content";
 
 export default function CategoryGrid() {
   const [categories, setCategories] = useState<AdminCategory[]>([]);
@@ -53,7 +53,7 @@ export default function CategoryGrid() {
           </Link>
         </div>
 
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${Math.min(Math.max(categories.length, 1), 4)} gap-6`}>
+        <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 ${categories.length >= 4 ? "lg:grid-cols-4" : categories.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
           {categories.map((cat, index) => (
             <motion.div
               key={cat.id || cat.slug || index}
@@ -67,7 +67,7 @@ export default function CategoryGrid() {
                 href={`/shop?category=${encodeURIComponent(cat.name)}`}
                 className="block relative h-full overflow-hidden rounded-[26px] border border-[#f1e7d8] bg-white shadow-[0_16px_35px_rgba(15,23,42,0.04)]"
               >
-                <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#f1e7d8]/40">
+                <div className="relative aspect-[2/2] w-full overflow-hidden bg-[#f1e7d8]/40">
                   {cat.image ? (
          <Image
   src={cat.image}

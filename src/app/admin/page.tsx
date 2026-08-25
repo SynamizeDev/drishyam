@@ -536,9 +536,13 @@ export default function AdminPage() {
     }));
   };
 
-  const saveChanges = () => {
-    saveSiteContent(content);
-    setToastMessage("All changes and cards saved successfully!");
+  const saveChanges = async () => {
+    try {
+      await saveSiteContent(content);
+      setToastMessage("All changes and cards saved successfully!");
+    } catch {
+      setToastMessage("Saved locally, but the cloud sync failed. Check Supabase settings and try again.");
+    }
   };
 
   /* ── Product Handlers ── */

@@ -58,8 +58,8 @@ export default function Hero() {
   if (!activeSlide) return null;
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#0f172a]">
-      <div className="relative w-full h-[520px] sm:h-[620px] lg:h-[760px] overflow-hidden group">
+    <section className="relative w-full overflow-hidden bg-[#211f1b]">
+      <div className="group relative h-[400px] w-full overflow-hidden sm:h-[680px] lg:h-[600px]">
 
         {/* ================= BACKGROUND IMAGE ================= */}
         <AnimatePresence initial={false} mode="sync">
@@ -86,16 +86,16 @@ export default function Hero() {
               fill
               priority
               unoptimized
-              className="object-cover opacity-75 transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+              className="object-cover opacity-80 transition-transform duration-700 ease-out group-hover:scale-[1.02]"
               sizes="100vw"
             />
           </motion.div>
         </AnimatePresence>
 
         {/* Background overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a] via-[#0f172a]/80 to-[#0f172a]/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#211f1b]/95 via-[#211f1b]/65 to-[#211f1b]/15" />
 
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(245,158,11,0.22),transparent_28%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(193,139,60,0.22),transparent_32%)]" />
 
         {/* ================= CONTENT ================= */}
         <div className="absolute inset-0 flex  z-10 px-4 sm:px-6 lg:px-8">
@@ -111,13 +111,13 @@ export default function Hero() {
               }}
               className="text-left"
             >
-              <div className="relative -top-[80px] max-sm:pt-24">
-                <div className="inline-flex max-sm:text-[8px] items-center gap-3 rounded-full border border-[#f59e0b]/40 bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase -[0.28em] text-[#fef3c7] backdrop-blur-sm">
-                <span className="h-2 w-2 rounded-full bg-[#f59e0b]" />
+              <div className="relative  max-sm:pt-24 lg:-mt-[100px]">
+                <div className="inline-flex items-center gap-3 border-l-2 border-[#d6a354] bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5dfb4] backdrop-blur-sm max-sm:text-[8px]">
+                <span className="h-2 w-2 rounded-full bg-[#d6a354]" />
                 {activeSlide.eyebrow || activeSlide.title}
               </div>
 
-              <h1 className="mt-6 max-sm:text-2xl uppercase text-4xl sm:text-5xl md:text-5xl font-semibold  text-white leading-[1] ">
+              <h1 className="mt-6 text-4xl font-semibold uppercase leading-[0.98] text-white sm:text-5xl md:text-6xl">
                 {siteContent.hero.headline}
               </h1>
 
@@ -127,14 +127,14 @@ export default function Hero() {
                 </div>
               )}
 
-              <p className="mt-6 max-sm:mt-2 max-sm:text-xs max-w-xl text-base sm:text-lg text-slate-100 leading-relaxed">
+              {/* <p className="mt-6 max-sm:mt-2 max-sm:text-xs max-w-xl text-base sm:text-lg text-slate-100 leading-relaxed">
                 {activeSlide.subtitle} — {siteContent.hero.description}
-              </p>
+              </p> */}
 
               <div className="mt-8 max-sm:mt-2 flex flex-col sm:flex-row gap-2">
                 <Link
                   href="/shop"
-                  className="btn-primary max-sm:text-xs inline-flex items-center justify-center gap-2 rounded-xl border border-[#f59e0b] px-7 py-3.5 text-sm font-bold uppercase -[0.2em] text-white transition-transform duration-200 hover:scale-[1.02]"
+                  className="btn-primary inline-flex items-center justify-center gap-2 rounded-lg border border-[#d6a354] px-7 py-3.5 text-sm font-bold uppercase tracking-[0.16em] text-white transition-transform duration-200 hover:scale-[1.02] max-sm:text-xs"
                 >
                   {activeSlide.primaryLabel || "See All Collections"}
                   <ArrowRight className="w-4 h-4" />
@@ -143,7 +143,7 @@ export default function Hero() {
                 <button
                   type="button"
                   onClick={handleEnquireNow}
-                  className="btn-secondary max-sm:text-xs inline-flex items-center justify-center gap-2 rounded-xl bg-[#f59e0b] px-7 py-3.5 text-sm font-bold uppercase -[0.2em] text-[#111827] shadow-[0_18px_35px_rgba(245,158,11,0.35)] transition-transform duration-200 hover:scale-[1.02]"
+                  className="btn-secondary inline-flex items-center justify-center gap-2 rounded-lg bg-[#d6a354] px-7 py-3.5 text-sm font-bold uppercase tracking-[0.16em] text-[#211f1b] shadow-[0_18px_35px_rgba(193,139,60,0.35)] transition-transform duration-200 hover:scale-[1.02] max-sm:text-xs"
                 >
                   {activeSlide.secondaryLabel || "Enquire Now"}
                   <ArrowRight className="w-4 h-4" />
@@ -165,7 +165,7 @@ export default function Hero() {
             </motion.div>
 
             {/* ================= RIGHT IMAGE ================= */}
-            <div className="hidden lg:flex justify-end">
+            {/* <div className="hidden lg:flex justify-end">
               <div className="relative w-full max-w-[420px] rounded-[28px] border border-white/10 bg-white/8 p-4 shadow-[0_30px_80px_rgba(15,23,42,0.45)] backdrop-blur-md">
 
                 <div className="overflow-hidden rounded-[22px] bg-[#f8fafc]">
@@ -221,12 +221,12 @@ export default function Hero() {
                 </div>
 
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
         {/* ================= SLIDER DOTS ================= */}
-        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+        <div className="absolute bottom-10 left-1/2 z-20 flex -translate-x-1/2 gap-2">
           {slides.map((slide, index) => (
             <button
               key={slide.id || slide.title}
@@ -242,7 +242,7 @@ export default function Hero() {
           ))}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white to-transparent" />
+        {/* <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white to-transparent" /> */}
       </div>
     </section>
   );

@@ -474,7 +474,7 @@ export default function ProductDetailPage({ params }: PageProps) {
 
         {recommendations.length > 0 && (
           <section className="bg-white py-20">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto  px-6 sm:px-6 lg:px-8">
               <div className="mb-8 flex items-end justify-between gap-4">
                 <h2 className=" text-3xl text-charcoal">
                   Recommended frames
