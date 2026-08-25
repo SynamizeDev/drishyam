@@ -46,11 +46,10 @@ export default function OpticalCategories() {
     };
   }, []);
 
-  /*
-   * More than 6 cards = slider
-   * 6 or fewer = responsive grid
-   */
+  /* Keep the desktop grid compact, but use one horizontal row on smaller screens. */
   const shouldUseSlider = categories.length > 6;
+  const shouldUseSmallScreenSlider = categories.length > 1;
+  const shouldUseAnySlider = shouldUseSlider || shouldUseSmallScreenSlider;
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
@@ -63,7 +62,7 @@ export default function OpticalCategories() {
   const [canScrollNext, setCanScrollNext] = useState(false);
 
   const updateButtons = useCallback(() => {
-    if (!emblaApi || !shouldUseSlider) {
+    if (!emblaApi || !shouldUseAnySlider) {
       setCanScrollPrev(false);
       setCanScrollNext(false);
       return;
@@ -71,22 +70,22 @@ export default function OpticalCategories() {
 
     setCanScrollPrev(emblaApi.canScrollPrev());
     setCanScrollNext(emblaApi.canScrollNext());
-  }, [emblaApi, shouldUseSlider]);
+  }, [emblaApi, shouldUseAnySlider]);
 
   const scrollPrev = useCallback(() => {
-    if (!emblaApi || !shouldUseSlider) return;
+    if (!emblaApi || !shouldUseAnySlider) return;
 
     emblaApi.scrollPrev();
-  }, [emblaApi, shouldUseSlider]);
+  }, [emblaApi, shouldUseAnySlider]);
 
   const scrollNext = useCallback(() => {
-    if (!emblaApi || !shouldUseSlider) return;
+    if (!emblaApi || !shouldUseAnySlider) return;
 
     emblaApi.scrollNext();
-  }, [emblaApi, shouldUseSlider]);
+  }, [emblaApi, shouldUseAnySlider]);
 
   useEffect(() => {
-    if (!emblaApi || !shouldUseSlider) return;
+    if (!emblaApi || !shouldUseAnySlider) return;
 
     const frame = window.requestAnimationFrame(updateButtons);
 
@@ -98,7 +97,7 @@ export default function OpticalCategories() {
       emblaApi.off("select", updateButtons);
       emblaApi.off("reInit", updateButtons);
     };
-  }, [emblaApi, shouldUseSlider, updateButtons]);
+  }, [emblaApi, shouldUseAnySlider, updateButtons]);
 
   if (!isHydrated || categories.length === 0) return null;
 
@@ -108,7 +107,7 @@ export default function OpticalCategories() {
   ) => {
     setActive(category.id);
 
-    if (shouldUseSlider && emblaApi) {
+    if (shouldUseAnySlider && emblaApi) {
       emblaApi.scrollTo(index);
     }
   };
@@ -167,10 +166,10 @@ export default function OpticalCategories() {
         )}
 
         {/* MORE THAN 6 = EMBLA SLIDER */}
-        {shouldUseSlider ? (
+        {shouldUseAnySlider && (
           <div
             ref={emblaRef}
-            className="overflow-hidden px-1 py-1"
+            className={`${shouldUseSlider ? "" : "lg:hidden"} overflow-hidden px-1 py-1 touch-pan-y`}
           >
             <div className="flex gap-4">
               {categories.map((category, index) => {
@@ -182,7 +181,8 @@ export default function OpticalCategories() {
                     className="
                       min-w-0 shrink-0
                       basis-[82%]
-                      sm:basis-[31%]
+                      sm:basis-[42%]
+                      md:basis-[31%]
                       lg:basis-[calc((100%-80px)/6)]
                     "
                   >
@@ -198,15 +198,15 @@ export default function OpticalCategories() {
               })}
             </div>
           </div>
-        ) : (
+        )}
 
-          /* 6 OR LESS = NORMAL RESPONSIVE GRID */
+        {!shouldUseSlider && (
           <div
-            className="
-              grid grid-cols-2 gap-4
-              sm:grid-cols-3
+            className={`
+              gap-4
+              ${shouldUseSmallScreenSlider ? "hidden lg:grid" : "grid"}
               lg:grid-cols-6
-            "
+            `}
           >
             {categories.map((category, index) => {
               const isActive = active === category.id;
@@ -227,8 +227,8 @@ export default function OpticalCategories() {
         )}
 
         {/* MOBILE CONTROLS */}
-        {shouldUseSlider && (
-          <div className="mt-4 flex items-center justify-between sm:hidden">
+        {shouldUseAnySlider && (
+          <div className="mt-4 flex items-center justify-between lg:hidden">
             <span className="text-xs text-gray-400">
               Swipe to explore
             </span>

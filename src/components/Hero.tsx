@@ -111,13 +111,13 @@ export default function Hero() {
               }}
               className="text-left"
             >
-              <div className="relative  max-sm:pt-24 lg:-mt-[100px]">
+              <div className="relative   lg:-mt-[100px] ">
                 <div className="inline-flex items-center gap-3 border-l-2 border-[#d6a354] bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5dfb4] backdrop-blur-sm max-sm:text-[8px]">
                 <span className="h-2 w-2 rounded-full bg-[#d6a354]" />
                 {activeSlide.eyebrow || activeSlide.title}
               </div>
 
-              <h1 className="mt-6 text-4xl font-semibold uppercase leading-[0.98] text-white sm:text-5xl md:text-6xl">
+              <h1 className="mt-6 max-sm:text-2xl text-4xl font-semibold uppercase leading-[0.98] text-white sm:text-5xl md:text-6xl">
                 {siteContent.hero.headline}
               </h1>
 
@@ -226,7 +226,7 @@ export default function Hero() {
         </div>
 
         {/* ================= SLIDER DOTS ================= */}
-        <div className="absolute bottom-10 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+        <div className="absolute max-sm:bottom-5 bottom-10 left-1/2 z-20 flex -translate-x-1/2 gap-2">
           {slides.map((slide, index) => (
             <button
               key={slide.id || slide.title}
