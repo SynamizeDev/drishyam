@@ -181,14 +181,6 @@ export default function OpticalCategories() {
                   </div>
                 );
               })}
-
-              <div className="min-w-0 shrink-0 basis-[44%] sm:basis-[42%] md:basis-[31%] lg:basis-[calc((100%-80px)/6)]">
-                <LensCard
-                  title="Contact Lens"
-                  image="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop"
-                  href="/contact-lens"
-                />
-              </div>
             </div>
           </div>
         )}
@@ -210,14 +202,6 @@ export default function OpticalCategories() {
                 </div>
               );
             })}
-
-            <div>
-              <LensCard
-                title="Contact Lens"
-                image="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop"
-                href="/contact-lens"
-              />
-            </div>
           </div>
         )}
 
@@ -254,46 +238,6 @@ export default function OpticalCategories() {
         )}
       </div>
     </section>
-  );
-}
-
-interface LensCardProps {
-  title: string;
-  image: string;
-  href: string;
-}
-
-function LensCard({ title, image, href }: LensCardProps) {
-  const router = useRouter();
-
-  return (
-    <button
-      type="button"
-      onClick={() => router.push(href)}
-      className="group relative w-full min-h-[210px] overflow-hidden rounded-[24px] text-left transition-all duration-300"
-    >
-      <div className="absolute inset-0 bg-white transition-all duration-500 group-hover:bg-[#eeede9]" />
-      <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-white/60 transition-transform duration-500 group-hover:scale-125" />
-
-      <div className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/20 text-gray-700 shadow-[0_8px_24px_rgba(0,0,0,0.08)] backdrop-blur-xl transition-all duration-300 group-hover:border-gray-950 group-hover:bg-gray-950 group-hover:text-white">
-        <ArrowUpRight size={15} />
-      </div>
-
-      <div className="absolute inset-x-0 top-9 flex h-[105px] items-center justify-center px-4 sm:h-[115px] lg:h-[110px]">
-        <img
-          src={image}
-          alt={title}
-          loading="lazy"
-          className="h-full max-h-[110px] w-auto max-w-[90%] object-contain transition-transform duration-500 ease-out group-hover:scale-105"
-        />
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 z-20 p-4">
-        <h3 className="mt-1 text-[15px] font-semibold tracking-tight text-gray-950">{title}</h3>
-      </div>
-
-      <span className="absolute bottom-0 left-0 z-30 h-[3px] bg-gray-950 transition-all duration-500 w-0 group-hover:w-full" />
-    </button>
   );
 }
 

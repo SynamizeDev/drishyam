@@ -28,5 +28,12 @@ export const categories: Category[] = [
     description: "Tailored optical lenses custom-fitted to your favorite lightweight frame.",
     image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=800&auto=format&fit=crop",
     slug: "prescription"
+  },
+  {
+    id: "cat-contact-lens",
+    name: "Contact Lens",
+    description: "Custom tint, prescription, and comfort options for daily contact lens wear.",
+    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop",
+    slug: "contact-lens"
   }
 ];
