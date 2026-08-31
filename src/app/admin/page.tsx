@@ -98,6 +98,12 @@ const AVAILABLE_ICONS = [
 type ConfirmAction = { title: string; message: string; confirmLabel: string; onConfirm: () => void };
 const PAGE_SIZE = 10;
 
+const CATEGORY_SECTIONS = [
+  { key: "eyeglassesProductIds" as const, name: "Eyeglasses", icon: Glasses, color: "bg-blue-100 text-blue-600" },
+  { key: "sunglassesProductIds" as const, name: "Sunglasses", icon: ShoppingBag, color: "bg-amber-100 text-amber-600" },
+  { key: "contactLensProductIds" as const, name: "Contact Lens", icon: Eye, color: "bg-pink-100 text-pink-600" },
+];
+
 /* ─── Validation ─── */
 const validateCategory = (cat: SiteContent["categories"][number]) => {
   const e: Record<string, string> = {};
@@ -347,7 +353,7 @@ export default function AdminPage() {
 
   /* ── Section toggles ── */
   const toggleSection = useCallback((
-    key: "featuredProductIds" | "newArrivalProductIds" | "shopByStyleProductIds",
+    key: "featuredProductIds" | "newArrivalProductIds" | "shopByStyleProductIds" | "eyeglassesProductIds" | "sunglassesProductIds" | "contactLensProductIds",
     productId: string
   ) => {
     setContent((c) => {
@@ -608,6 +614,9 @@ export default function AdminPage() {
             featuredProductIds: (c.featuredProductIds ?? []).filter((pid) => pid !== id),
             newArrivalProductIds: (c.newArrivalProductIds ?? []).filter((pid) => pid !== id),
             shopByStyleProductIds: (c.shopByStyleProductIds ?? []).filter((pid) => pid !== id),
+            eyeglassesProductIds: (c.eyeglassesProductIds ?? []).filter((pid) => pid !== id),
+            sunglassesProductIds: (c.sunglassesProductIds ?? []).filter((pid) => pid !== id),
+            contactLensProductIds: (c.contactLensProductIds ?? []).filter((pid) => pid !== id),
           };
           saveSiteContent(nextContent);
           return nextContent;
@@ -1416,6 +1425,34 @@ export default function AdminPage() {
                       onToggle={(id) => toggleSection("shopByStyleProductIds", id)}
                       allProductsList={productList}
                     />
+                  </div>
+                </div>
+
+                {/* ── Category-Specific Product Management ── */}
+                <div>
+                  <div className="mb-4">
+                    <p className="text-[10px] font-bold uppercase -[0.22em] text-[#a55d00]">Step 5</p>
+                    <h3 className="mt-1 text-2xl font-semibold text-[#111111]">Manage Products by Category</h3>
+                    <p className="mt-1.5 text-sm text-[#111111]/50">
+                      Assign products to specific categories (Eyeglasses, Sunglasses, Contact Lens). These will appear on their respective category pages.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-5 lg:grid-cols-3">
+                    {CATEGORY_SECTIONS.map((section) => {
+                      const Icon = section.icon;
+                      return (
+                        <ProductSectionPanel
+                          key={section.key}
+                          title={section.name}
+                          icon={Icon}
+                          iconColor={section.color}
+                          selectedIds={content[section.key] ?? []}
+                          onToggle={(id) => toggleSection(section.key, id)}
+                          allProductsList={productList}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               </section>

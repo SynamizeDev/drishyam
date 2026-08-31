@@ -8,6 +8,7 @@ import MobileMenu from "@/components/MobileMenu";
 import CartDrawer from "@/components/CartDrawer";
 import { makeWhatsAppUrl } from "@/lib/whatsapp";
 import { useApp } from "@/context/AppContext";
+import { formatINR } from "@/lib/whatsapp";
 import { ShoppingBag, Trash2, Plus, Minus, Heart, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -107,7 +108,7 @@ export default function CartPage() {
                       {/* Unit Price */}
                       <div className="col-span-2 text-center text-sm font-medium text-charcoal">
                         <span className="sm:hidden text-sm text-charcoal/40 block mb-1">Unit Price</span>
-                        ${item.product.price}
+                        {formatINR(item.product.price)}
                       </div>
 
                       {/* Quantity Selector */}
@@ -132,7 +133,7 @@ export default function CartPage() {
                       {/* Subtotal */}
                       <div className="col-span-2 text-right text-sm font-semibold text-charcoal">
                         <span className="sm:hidden text-sm text-charcoal/40 block mb-1">Total</span>
-                        ${item.product.price * item.quantity}
+                        {formatINR(item.product.price * item.quantity)}
                       </div>
 
                     </div>
@@ -149,7 +150,7 @@ export default function CartPage() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between text-charcoal/70">
                     <span>Subtotal ({cartCount} items)</span>
-                    <span className="font-medium">${cartTotal}</span>
+                    <span className="font-medium">{formatINR(cartTotal)}</span>
                   </div>
                   <div className="flex justify-between text-charcoal/70">
                     <span>Shipping</span>
@@ -161,7 +162,7 @@ export default function CartPage() {
                   </div>
                   <div className="flex justify-between text-charcoal text-sm font-bold pt-4 border-t border-beige-100">
                     <span>Estimated Total</span>
-                    <span>${cartTotal}</span>
+                    <span>{formatINR(cartTotal)}</span>
                   </div>
                 </div>
 

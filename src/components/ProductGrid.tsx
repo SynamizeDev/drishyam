@@ -30,7 +30,7 @@ export default function ProductGrid({ productsList }: ProductGridProps) {
   return (
     <>
       <div
-        className={`grid grid-cols-1 gap-6 sm:grid-cols-2 ${
+        className={`grid grid-cols-2 gap-3 sm:gap-5 ${
           isHomePage ? "lg:grid-cols-4" : "lg:grid-cols-3"
         }`}
       >

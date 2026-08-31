@@ -87,6 +87,9 @@ export interface SiteContent {
   featuredProductIds?: string[];
   newArrivalProductIds?: string[];
   shopByStyleProductIds?: string[];
+  eyeglassesProductIds?: string[];
+  sunglassesProductIds?: string[];
+  contactLensProductIds?: string[];
   sales: OfflineSaleRecord[];
 }
 
@@ -221,6 +224,9 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   featuredProductIds: ["frame-001", "frame-002", "frame-004", "frame-005"],
   newArrivalProductIds: ["frame-003", "frame-006", "frame-007", "frame-010"],
   shopByStyleProductIds: ["frame-001", "frame-003", "frame-005", "frame-008"],
+  eyeglassesProductIds: ["frame-001", "frame-003", "frame-005"],
+  sunglassesProductIds: ["frame-002", "frame-004", "frame-008"],
+  contactLensProductIds: ["frame-006", "frame-007"],
   sales: [
     {
       id: "sale-1",
@@ -275,6 +281,9 @@ function mergeContent(saved: Partial<SiteContent>): SiteContent {
     featuredProductIds: saved.featuredProductIds ?? DEFAULT_SITE_CONTENT.featuredProductIds,
     newArrivalProductIds: saved.newArrivalProductIds ?? DEFAULT_SITE_CONTENT.newArrivalProductIds,
     shopByStyleProductIds: saved.shopByStyleProductIds ?? DEFAULT_SITE_CONTENT.shopByStyleProductIds,
+    eyeglassesProductIds: saved.eyeglassesProductIds ?? DEFAULT_SITE_CONTENT.eyeglassesProductIds,
+    sunglassesProductIds: saved.sunglassesProductIds ?? DEFAULT_SITE_CONTENT.sunglassesProductIds,
+    contactLensProductIds: saved.contactLensProductIds ?? DEFAULT_SITE_CONTENT.contactLensProductIds,
     sales: saved.sales ?? DEFAULT_SITE_CONTENT.sales,
   };
 }

@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { useApp } from "@/context/AppContext";
-import { makeWhatsAppUrl } from "@/lib/whatsapp";
+import { formatINR, makeWhatsAppUrl } from "@/lib/whatsapp";
 import {
   X,
   Trash2,
@@ -142,7 +142,7 @@ export default function CartDrawer() {
                           </h3>
 
                           <span className="text-sm font-semibold text-charcoal pl-2">
-                            ${item.product.price * item.quantity}
+                            {formatINR(item.product.price * item.quantity)}
                           </span>
                         </div>
 
@@ -233,7 +233,7 @@ export default function CartDrawer() {
                 <div className="space-y-1.5 mb-6 text-sm">
                   <div className="flex justify-between text-charcoal/70">
                     <span>Subtotal</span>
-                    <span>${cartTotal}</span>
+                    <span>{formatINR(cartTotal)}</span>
                   </div>
 
                   <div className="flex justify-between text-charcoal/70">
@@ -246,7 +246,7 @@ export default function CartDrawer() {
 
                   <div className="flex justify-between font-semibold text-charcoal text-base pt-3 border-t border-beige-100">
                     <span>Estimated Total</span>
-                    <span>${cartTotal}</span>
+                    <span>{formatINR(cartTotal)}</span>
                   </div>
                 </div>
 

@@ -200,7 +200,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     <article
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-[#e7e1d8] bg-white transition-all duration-500 hover:-translate-y-2 hover:border-[#c9a15b]/60 hover:shadow-[0_30px_70px_rgba(35,31,26,0.14)]"
+      className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#e7e1d8] bg-white transition-all duration-500 hover:-translate-y-2 hover:border-[#c9a15b]/60 hover:shadow-[0_30px_70px_rgba(35,31,26,0.14)] sm:rounded-3xl"
     >
       {/* Decorative animated top line */}
       <div className="absolute left-0 top-0 z-30 h-0.75 w-full origin-left scale-x-0 bg-linear-to-r from-[#c18b3c] via-[#f0c878] to-[#c18b3c] transition-transform duration-700 group-hover:scale-x-100" />
@@ -226,7 +226,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="absolute inset-0 bg-linear-to-t from-[#171512]/60 via-transparent to-[#171512]/10 opacity-70 transition-opacity duration-500 group-hover:opacity-100" />
 
           {/* Existing category data */}
-          <div className="absolute left-4 top-4 z-10 rounded-full border border-white/40 bg-white/75 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-[#231f1a] shadow-md backdrop-blur-md">
+          <div className="absolute left-2 top-2 z-10 rounded-full  border border-white/40 bg-white/80 px-1.5 py-0.5 text-[6.5px] font-bold uppercase tracking-[0.1em] text-[#231f1a] shadow-md backdrop-blur-md sm:left-4 sm:top-4 sm:px-3 sm:py-1.5 sm:text-[9px]">
             {product.shape} {product.category}
           </div>
           </div>
@@ -236,7 +236,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <button
           type="button"
           onClick={() => toggleWishlist(product.id)}
-          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/75 text-[#231f1a] shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-110 hover:text-red-500 active:scale-95"
+          className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white/80 text-[#231f1a] shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-110 hover:text-red-500 active:scale-95 sm:right-4 sm:top-4 sm:h-10 sm:w-10"
           aria-label="Add to wishlist"
         >
           <Heart
@@ -247,20 +247,20 @@ export default function ProductCard({ product }: ProductCardProps) {
         </button>
 
         {/* QUICK ACTIONS */}
-        <div className="absolute inset-x-0 bottom-0 z-20 bg-linear-to-t from-[#171512]/80 via-[#171512]/30 to-transparent px-4 pb-4 pt-14">
-          <div className="flex translate-y-0 gap-2 transition-all duration-500 sm:translate-y-6 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
+        <div className="absolute inset-x-0 bottom-0 z-20 bg-linear-to-t from-[#171512]/80 via-[#171512]/30 to-transparent px-2 pb-2 pt-10 sm:px-4 sm:pb-4 sm:pt-14">
+          <div className="flex translate-y-0 gap-1.5 transition-all duration-500 sm:gap-2 sm:translate-y-6 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
             <button
               type="button"
               onClick={handleQuickAdd}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#d6a354] px-3 py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#211f1b] shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e1b667] active:scale-[0.98] sm:text-xs"
+              className="flex flex-1 items-center justify-center gap-1 rounded-md bg-[#d6a354] px-2 py-2 text-[7px] font-bold uppercase tracking-[0.1em] text-[#211f1b] shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e1b667] active:scale-[0.98] sm:px-3 sm:py-3 sm:text-[10px] sm:tracking-[0.14em] sm:text-xs"
             >
               <ShoppingBag className="h-4 w-4" />
-              <span>Quick Add</span>
+              <span className="max-sm:relative max-sm:top-[3px]">Quick Add</span>
             </button>
 
             <Link
               href={`/product/${product.slug}`}
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/95 text-[#231f1a] shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-white"
+              className="flex h-9 w-9 items-center justify-center rounded-md bg-white/95 text-[#231f1a] shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-white sm:h-11 sm:w-11 sm:rounded-xl"
               aria-label="Quick View"
             >
               <Eye className="h-4 w-4" />
@@ -270,11 +270,11 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
 
       {/* PRODUCT DETAILS */}
-      <div className="flex flex-1 flex-col justify-between p-5">
+      <div className="flex flex-1 flex-col justify-between p-2.5 sm:p-5">
         <div>
-          <div className="mb-3 h-px w-10 bg-[#d6a354] transition-all duration-500 group-hover:w-20" />
+          <div className="mb-1.5 h-px w-7 bg-[#d6a354] transition-all duration-500 group-hover:w-10 sm:mb-3 sm:w-10 sm:group-hover:w-20" />
 
-          <h3 className="text-lg font-bold leading-snug text-[#231f1a] transition-colors duration-300 group-hover:text-[#a9752d] sm:text-xl">
+          <h3 className="text-[13px] font-bold leading-snug text-[#231f1a] transition-colors duration-300 group-hover:text-[#a9752d] sm:text-lg sm:text-xl">
             <Link href={`/product/${product.slug}`}>
               {product.name}
             </Link>
@@ -282,11 +282,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* EXISTING ACTIONS ONLY */}
-        <div className="mt-2 grid gap-2 border-t border-[#eee9e0] pt-4">
+        <div className="mt-2 grid gap-1.5 border-t border-[#eee9e0] pt-2.5 sm:gap-2 sm:pt-4">
           <button
             type="button"
             onClick={handleEnquireNow}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25a65a] py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-white shadow-[0_8px_20px_rgba(37,166,90,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#208c4d] hover:shadow-[0_12px_28px_rgba(37,166,90,0.28)] active:scale-[0.98] sm:text-xs"
+            className="flex w-full items-center justify-center gap-1 rounded-md bg-[#25a65a] py-2 text-[7px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_8px_20px_rgba(37,166,90,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#208c4d] hover:shadow-[0_12px_28px_rgba(37,166,90,0.28)] active:scale-[0.98] sm:gap-2 sm:rounded-xl sm:py-3 sm:text-[10px] sm:tracking-[0.14em] sm:text-xs"
           >
             <WhatsAppIcon />
             <span>Enquire Now</span>
@@ -294,7 +294,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           <Link
             href={`/product/${product.slug}`}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#231f1a] bg-white py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#231f1a] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#231f1a] hover:text-white active:scale-[0.98] sm:text-xs"
+            className="flex w-full items-center justify-center gap-1 rounded-md border border-[#231f1a] bg-white py-2 text-[7px] font-bold uppercase tracking-[0.1em] text-[#231f1a] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#231f1a] hover:text-white active:scale-[0.98] sm:gap-2 sm:rounded-xl sm:py-3 sm:text-[10px] sm:tracking-[0.14em] sm:text-xs"
           >
             <Eye className="h-3.5 w-3.5" />
             <span>View Details</span>

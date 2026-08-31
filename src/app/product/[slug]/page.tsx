@@ -182,7 +182,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   </div>
 </div>
 
-              <div className="mt-4 grid grid-cols-4 gap-3">
+              {/* <div className="mt-4 grid grid-cols-4 gap-3">
                 {product.images.map((img, idx) => (
                   <button
                     key={idx}
@@ -202,7 +202,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                     />
                   </button>
                 ))}
-              </div>
+              </div> */}
             </div>
 
             <div className="lg:col-span-5">

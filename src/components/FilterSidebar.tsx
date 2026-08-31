@@ -83,7 +83,7 @@ export default function FilterSidebar({
       </div>
 
       {/* Frame Shape */}
-      <div className="space-y-2.5">
+      {/* <div className="space-y-2.5">
         <h4 className="text-[14px] uppercase font-bold -wider text-charcoal/70">Frame Shape</h4>
         <div className="grid grid-cols-2 gap-2">
           {shapes.map((sh) => (
@@ -100,7 +100,7 @@ export default function FilterSidebar({
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Material */}
       <div className="space-y-2.5">

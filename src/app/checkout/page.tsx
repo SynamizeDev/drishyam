@@ -5,7 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { ShoppingBag, ArrowLeft, ChevronRight, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { makeWhatsAppUrl } from "@/lib/whatsapp";
+import { formatINR, makeWhatsAppUrl } from "@/lib/whatsapp";
 import BrandLogo from "@/components/BrandLogo";
 
 export default function CheckoutPage() {
@@ -56,7 +56,7 @@ export default function CheckoutPage() {
                   <div className="space-y-3 text-sm text-charcoal/70">
                     <div className="flex justify-between">
                       <span>Items ({cartCount})</span>
-                      <span className="font-semibold text-charcoal">${cartTotal}</span>
+                      <span className="font-semibold text-charcoal">{formatINR(cartTotal)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shipping</span>
@@ -64,7 +64,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="pt-3 border-t border-beige-100 flex justify-between text-charcoal font-semibold">
                       <span>Total</span>
-                      <span>${cartTotal}</span>
+                      <span>{formatINR(cartTotal)}</span>
                     </div>
                   </div>
                 </div>
@@ -106,7 +106,7 @@ export default function CheckoutPage() {
                       )}
                       <p className="text-sm text-charcoal/50 mt-2">Qty: {item.quantity}</p>
                     </div>
-                    <div className="text-right font-semibold text-charcoal">${item.product.price * item.quantity}</div>
+                    <div className="text-right font-semibold text-charcoal">{formatINR(item.product.price * item.quantity)}</div>
                   </div>
                 ))}
               </div>
