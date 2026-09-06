@@ -142,7 +142,7 @@ export default function CartDrawer() {
                           </h3>
 
                           <span className="text-sm font-semibold text-charcoal pl-2">
-                            {formatINR(item.product.price * item.quantity)}
+                            {formatINR((item.finalPrice ?? item.product.price) * item.quantity)}
                           </span>
                         </div>
 
@@ -150,9 +150,9 @@ export default function CartDrawer() {
                           Color: {item.selectedColor}
                         </p>
 
-                        {item.selectedLens && (
+                        {item.configuration?.purchaseType === "with-lenses" && (
                           <p className="text-sm text-charcoal/45 mt-0.5">
-                            Lens: {item.selectedLens}
+                            Lenses: {item.selectedLens || "To be selected"}
                           </p>
                         )}
                       </div>
@@ -165,7 +165,8 @@ export default function CartDrawer() {
                               updateQuantity(
                                 item.product.id,
                                 item.selectedColor,
-                                item.quantity - 1
+                                item.quantity - 1,
+                                item.configuration
                               )
                             }
                             className="p-1 hover:bg-beige-50 transition-colors text-charcoal/70"
@@ -182,7 +183,8 @@ export default function CartDrawer() {
                               updateQuantity(
                                 item.product.id,
                                 item.selectedColor,
-                                item.quantity + 1
+                                item.quantity + 1,
+                                item.configuration
                               )
                             }
                             className="p-1 hover:bg-beige-50 transition-colors text-charcoal/70"
@@ -196,7 +198,8 @@ export default function CartDrawer() {
                           onClick={() =>
                             removeFromCart(
                               item.product.id,
-                              item.selectedColor
+                              item.selectedColor,
+                              item.configuration
                             )
                           }
                           className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors"

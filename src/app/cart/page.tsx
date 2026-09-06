@@ -94,7 +94,7 @@ export default function CartPage() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                removeFromCart(item.product.id, item.selectedColor);
+                                removeFromCart(item.product.id, item.selectedColor, item.configuration);
                               }}
                               className="hover:text-red-500 transition-colors flex items-center gap-1"
                             >
@@ -108,21 +108,21 @@ export default function CartPage() {
                       {/* Unit Price */}
                       <div className="col-span-2 text-center text-sm font-medium text-charcoal">
                         <span className="sm:hidden text-sm text-charcoal/40 block mb-1">Unit Price</span>
-                        {formatINR(item.product.price)}
+                        {formatINR(item.finalPrice ?? item.product.price)}
                       </div>
 
                       {/* Quantity Selector */}
                       <div className="col-span-2 flex justify-center">
                         <div className="flex items-center border border-beige-200">
                           <button
-                            onClick={() => updateQuantity(item.product.id, item.selectedColor, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.product.id, item.selectedColor, item.quantity - 1, item.configuration)}
                             className="p-1.5 hover:bg-beige-50 transition-colors"
                           >
                             <Minus className="w-3.5 h-3.5 text-charcoal/60" />
                           </button>
                           <span className="px-3 text-sm font-semibold text-charcoal">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.product.id, item.selectedColor, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.product.id, item.selectedColor, item.quantity + 1, item.configuration)}
                             className="p-1.5 hover:bg-beige-50 transition-colors"
                           >
                             <Plus className="w-3.5 h-3.5 text-charcoal/60" />
@@ -133,7 +133,7 @@ export default function CartPage() {
                       {/* Subtotal */}
                       <div className="col-span-2 text-right text-sm font-semibold text-charcoal">
                         <span className="sm:hidden text-sm text-charcoal/40 block mb-1">Total</span>
-                        {formatINR(item.product.price * item.quantity)}
+                        {formatINR((item.finalPrice ?? item.product.price) * item.quantity)}
                       </div>
 
                     </div>

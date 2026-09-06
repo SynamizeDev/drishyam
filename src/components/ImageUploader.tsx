@@ -149,7 +149,7 @@ export default function ImageUploader({
       {/* Storage note */}
       {!value && (
         <div className="rounded-lg border border-blue-200 bg-blue-50/80 p-3.5 text-[10px] text-blue-900">
-          <p className="font-semibold">Images uploaded here are stored in Supabase Storage and remain available after deployment.</p>
+          <p className="font-semibold">Images added here remain available after deployment.</p>
           <p className="mt-1">You can also paste a public image URL below.</p>
         </div>
       )}

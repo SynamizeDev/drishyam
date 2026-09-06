@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useSyncExternalStore } from "react";
-import { Product } from "@/types/product";
+import { Product, ProductConfigurationSelection } from "@/types/product";
 
 export interface CartItem {
   product: Product;
@@ -9,14 +9,23 @@ export interface CartItem {
   selectedColor: string;
   selectedLens?: string;
   selectedPrescriptionFile?: string;
+  configuration?: ProductConfigurationSelection;
+  basePrice?: number;
+  optionsAmount?: number;
+  finalPrice?: number;
 }
 
 interface AppContextType {
   cart: CartItem[];
   wishlist: string[]; // product IDs
-  addToCart: (product: Product, color: string, quantity?: number, lens?: string) => void;
-  removeFromCart: (productId: string, color: string) => void;
-  updateQuantity: (productId: string, color: string, quantity: number) => void;
+  addToCart: (product: Product, color: string, quantity?: number, lens?: string, details?: {
+    configuration?: ProductConfigurationSelection;
+    basePrice?: number;
+    optionsAmount?: number;
+    finalPrice?: number;
+  }) => void;
+  removeFromCart: (productId: string, color: string, configuration?: ProductConfigurationSelection) => void;
+  updateQuantity: (productId: string, color: string, quantity: number, configuration?: ProductConfigurationSelection) => void;
   toggleWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
   clearCart: () => void;
@@ -82,6 +91,14 @@ function getWishlistSnapshot(): string[] {
   return wishlistSnapshotRef.current;
 }
 
+function configurationsMatch(
+  first?: ProductConfigurationSelection,
+  second?: ProductConfigurationSelection
+) {
+  return JSON.stringify(first ?? { purchaseType: "frame-only" }) ===
+    JSON.stringify(second ?? { purchaseType: "frame-only" });
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const cart = useSyncExternalStore(
     (listener) => {
@@ -123,11 +140,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     product: Product,
     color: string,
     quantity = 1,
-    lens = "Standard Clear"
+    lens = "Standard Clear",
+    details?: {
+      configuration?: ProductConfigurationSelection;
+      basePrice?: number;
+      optionsAmount?: number;
+      finalPrice?: number;
+    }
   ) => {
     const existingIndex = cart.findIndex(
       (item) =>
-        item.product.id === product.id && item.selectedColor === color
+        item.product.id === product.id &&
+        item.selectedColor === color &&
+        configurationsMatch(item.configuration, details?.configuration)
     );
 
     if (existingIndex > -1) {
@@ -142,6 +167,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           quantity,
           selectedColor: color,
           selectedLens: lens,
+          configuration: details?.configuration,
+          basePrice: details?.basePrice ?? product.price,
+          optionsAmount: details?.optionsAmount ?? 0,
+          finalPrice: details?.finalPrice ?? product.price,
         },
       ]);
     }
@@ -150,10 +179,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setCartOpen(true);
   };
 
-  const removeFromCart = (productId: string, color: string) => {
+  const removeFromCart = (productId: string, color: string, configuration?: ProductConfigurationSelection) => {
     const newCart = cart.filter(
       (item) =>
-        !(item.product.id === productId && item.selectedColor === color)
+        !(item.product.id === productId &&
+          item.selectedColor === color &&
+          configurationsMatch(item.configuration, configuration))
     );
     saveCart(newCart);
   };
@@ -161,7 +192,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const updateQuantity = (
     productId: string,
     color: string,
-    quantity: number
+    quantity: number,
+    configuration?: ProductConfigurationSelection
   ) => {
     if (quantity <= 0) {
       removeFromCart(productId, color);
@@ -170,6 +202,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const newCart = cart.map((item) =>
       item.product.id === productId && item.selectedColor === color
+      && configurationsMatch(item.configuration, configuration)
         ? { ...item, quantity }
         : item
     );
@@ -198,7 +231,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const cartTotal = cart.reduce(
-    (total, item) => total + item.product.price * item.quantity,
+    (total, item) => total + (item.finalPrice ?? item.product.price) * item.quantity,
     0
   );
 

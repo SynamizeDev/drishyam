@@ -21,7 +21,7 @@ export function makeWhatsAppUrl(cart: CartItem[]) {
     return `${baseUrl}&text=${encodeMessage("Hello Drishyam Optical, I would like to place an order.")}`;
   }
 
-  const subtotal = cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  const subtotal = cart.reduce((total, item) => total + (item.finalPrice ?? item.product.price) * item.quantity, 0);
 
   const lines: string[] = [
     "Hello Drishyam Optical,",
@@ -33,9 +33,11 @@ export function makeWhatsAppUrl(cart: CartItem[]) {
     const itemLines = [
       `${index + 1}. ${item.product.name}`,
       `   Color: ${item.selectedColor}`,
-      item.selectedLens ? `   Lens: ${item.selectedLens}` : "",
+      item.configuration?.purchaseType !== "frame-only" && item.selectedLens ? `   Lens: ${item.selectedLens}` : "",
+      item.configuration?.visionType ? `   Vision: ${item.configuration.visionType}` : "",
+      item.configuration?.corridor ? `   Corridor: ${item.configuration.corridor}` : "",
       `   Quantity: ${item.quantity}`,
-      `   Price: ${formatINR(item.product.price * item.quantity)}`,
+      `   Price: ${formatINR((item.finalPrice ?? item.product.price) * item.quantity)}`,
     ];
     lines.push(...itemLines.filter(Boolean));
   });

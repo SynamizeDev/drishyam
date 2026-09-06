@@ -7,8 +7,10 @@ import ProductCard from "@/components/ProductCard";
 import SearchModal from "@/components/SearchModal";
 import MobileMenu from "@/components/MobileMenu";
 import CartDrawer from "@/components/CartDrawer";
+import ProductLensConfigurator from "@/components/ProductLensConfigurator";
 import { getStoredProducts, products as defaultProducts } from "@/data/products";
 import { type CartItem, useApp } from "@/context/AppContext";
+import type { ProductConfigurationSelection } from "@/types/product";
 import { makeWhatsAppUrl } from "@/lib/whatsapp";
 import {
   ArrowLeft,
@@ -39,7 +41,13 @@ export default function ProductDetailPage({ params }: PageProps) {
   }, []);
 
   // Find product by slug
-  const product = allProducts.find((p) => p.slug === slug);
+  const normalizedSlug = decodeURIComponent(slug).trim().toLowerCase();
+  const matchesProductPath = (candidate: (typeof allProducts)[number]) => {
+    const candidateSlug = candidate.slug.trim().toLowerCase();
+    const candidateId = candidate.id.trim().toLowerCase();
+    return candidateSlug === normalizedSlug || candidateId === normalizedSlug;
+  };
+  const product = allProducts.find(matchesProductPath) ?? defaultProducts.find(matchesProductPath);
 
   // States initialized from the product data so we avoid redundant effect-driven resets.
   const [selectedColor, setSelectedColor] = useState(
@@ -49,11 +57,17 @@ export default function ProductDetailPage({ params }: PageProps) {
   const [activeTab, setActiveTab] = useState<
     "details" | "materials" | "shipping"
   >("details");
+  const [configurationSelection, setConfigurationSelection] = useState<ProductConfigurationSelection>({ purchaseType: "frame-only" });
+  const [configurationPricing, setConfigurationPricing] = useState({ basePrice: 0, optionsAmount: 0, finalPrice: 0 });
+  const [configurationValid, setConfigurationValid] = useState(true);
 
   useEffect(() => {
     if (product) {
       setSelectedColor(product.colors[0] ?? null);
       setActiveImage(product.images[0] || "");
+      setConfigurationSelection({ purchaseType: "frame-only" });
+      setConfigurationPricing({ basePrice: product.price, optionsAmount: 0, finalPrice: product.price });
+      setConfigurationValid(true);
     }
   }, [product]);
 
@@ -85,20 +99,28 @@ export default function ProductDetailPage({ params }: PageProps) {
   }
 
   const handleAddToCart = () => {
-    if (selectedColor) {
-      addToCart(product, selectedColor.name, 1);
-    }
+    if (!selectedColor || !configurationValid) return;
+    addToCart(product, selectedColor.name, 1, configurationSelection.purchaseType === "with-lenses" ? configurationSelection.lensType : "", {
+      configuration: configurationSelection,
+      ...configurationPricing,
+    });
   };
 
   const handleEnquireNow = () => {
-    if (selectedColor) {
+    if (selectedColor && configurationValid) {
       const item: CartItem = {
         product,
         quantity: 1,
         selectedColor: selectedColor.name,
+        selectedLens: configurationSelection.purchaseType === "with-lenses" ? configurationSelection.lensType : undefined,
+        configuration: configurationSelection,
+        ...configurationPricing,
       };
 
-      addToCart(product, selectedColor.name, 1);
+      addToCart(product, selectedColor.name, 1, configurationSelection.purchaseType === "with-lenses" ? configurationSelection.lensType : "", {
+        configuration: configurationSelection,
+        ...configurationPricing,
+      });
 
       const whatsappUrl = makeWhatsAppUrl([item]);
 
@@ -271,6 +293,15 @@ export default function ProductDetailPage({ params }: PageProps) {
                       )
                     )}
                   </div>
+
+                  <ProductLensConfigurator
+                    product={product}
+                    onChange={(selection, pricing, valid) => {
+                      setConfigurationSelection(selection);
+                      setConfigurationPricing(pricing);
+                      setConfigurationValid(valid);
+                    }}
+                  />
 
                   <div className="space-y-3">
                     <div className="flex gap-3">

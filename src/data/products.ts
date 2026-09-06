@@ -3,6 +3,54 @@ import { supabase } from "@/lib/supabase";
 
 const PRODUCT_STORAGE_KEY = "drishyam_products";
 
+function createCatalogLensConfiguration(product: Product): Product["lensConfiguration"] {
+  const images = product.images.map((image) => typeof image === "string" ? image : image.src);
+  const image = (index: number) => images[index % images.length] ?? images[0] ?? "";
+
+  return {
+    enabled: true,
+    visionTypes: [
+      {
+        id: "zero-power",
+        name: "Zero Power",
+        image: image(0),
+        lensOptions: [
+          { id: "clear-basic", name: "Clear Basic", price: 0, description: "Everyday clear lenses." },
+          { id: "blue-light", name: "Blue Light Filter", price: 500, description: "Helps reduce screen glare." },
+        ],
+      },
+      {
+        id: "single-vision",
+        name: "Single Vision",
+        image: image(1),
+        lensOptions: [
+          { id: "single-standard", name: "Standard Single Vision", price: 800, description: "Prescription lenses for one viewing distance." },
+          { id: "single-premium", name: "Premium Single Vision", price: 1200, description: "Thinner, lighter lenses with premium coating." },
+        ],
+      },
+      {
+        id: "progressive",
+        name: "Progressive",
+        image: image(0),
+        lensOptions: [{ id: "progressive-standard", name: "Standard Progressive", price: 1800, description: "Clear vision across viewing distances." }],
+        corridors: [
+          { id: "standard-corridor", name: "Standard Corridor", price: 0 },
+          { id: "wide-corridor", name: "Wider Corridor", price: 600 },
+          { id: "maximum-corridor", name: "Maximum Corridor", price: 1000 },
+        ],
+      },
+      {
+        id: "photochromic",
+        name: "Photochromic",
+        image: image(1),
+        lensOptions: [{ id: "photochromic-clear", name: "Photochromic Clear to Grey", price: 1500, description: "Darkens outdoors and returns clear indoors." }],
+      },
+    ],
+    additionalOptions: [{ id: "anti-reflective", name: "Anti-reflective coating", price: 300 }],
+    prescription: { enabled: true, required: false, accept: ".pdf,image/*", maxSizeMb: 10 },
+  };
+}
+
 export const defaultProducts: Product[] = [
   {
     id: "frame-001",
@@ -36,7 +84,55 @@ export const defaultProducts: Product[] = [
     ],
     dimensions: "50-20-145",
     isBestSeller: true,
-    isNew: false
+    isNew: false,
+    lensConfiguration: {
+      enabled: true,
+      visionTypes: [
+        {
+          id: "zero-power",
+          name: "Zero Power",
+          image: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?q=80&w=800&auto=format&fit=crop",
+          lensOptions: [
+            { id: "clear-basic", name: "Clear Basic", price: 0, description: "Everyday clear lenses for a simple frame-only look." },
+            { id: "blue-light", name: "Blue Light Filter", price: 500, description: "Helps reduce screen glare and blue light exposure." },
+          ],
+        },
+        {
+          id: "single-vision",
+          name: "Single Vision",
+          image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop",
+          lensOptions: [
+            { id: "single-standard", name: "Standard Single Vision", price: 800, description: "Prescription lenses for one viewing distance." },
+            { id: "single-premium", name: "Premium Single Vision", price: 1200, description: "Thinner, lighter lenses with premium coating." },
+          ],
+        },
+        {
+          id: "progressive",
+          name: "Progressive",
+          image: "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?q=80&w=800&auto=format&fit=crop",
+          lensOptions: [
+            { id: "progressive-standard", name: "Standard Progressive", price: 1800, description: "Clear vision across near, intermediate, and distance ranges." },
+          ],
+          corridors: [
+            { id: "standard-corridor", name: "Standard Corridor", price: 0 },
+            { id: "wide-corridor", name: "Wider Corridor", price: 600, description: "More room for comfortable intermediate vision." },
+            { id: "maximum-corridor", name: "Maximum Corridor", price: 1000, description: "The widest transition area available for this lens." },
+          ],
+        },
+        {
+          id: "photochromic",
+          name: "Photochromic",
+          image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=800&auto=format&fit=crop",
+          lensOptions: [
+            { id: "photochromic-clear", name: "Photochromic Clear to Grey", price: 1500, description: "Lenses that darken outdoors and return clear indoors." },
+          ],
+        },
+      ],
+      additionalOptions: [
+        { id: "anti-reflective", name: "Anti-reflective coating", price: 300, description: "Reduces reflections for clearer vision." },
+      ],
+      prescription: { enabled: true, required: false, accept: ".pdf,image/*", maxSizeMb: 10 },
+    },
   },
   {
     id: "frame-002",
@@ -168,6 +264,10 @@ export const defaultProducts: Product[] = [
   }
 ];
 
+defaultProducts.forEach((product) => {
+  if (!product.lensConfiguration) product.lensConfiguration = createCatalogLensConfiguration(product);
+});
+
 export function getStoredProducts(): Product[] {
   if (typeof window === "undefined") {
     return defaultProducts;
@@ -180,7 +280,10 @@ export function getStoredProducts(): Product[] {
       const parsed = JSON.parse(raw);
 
       if (Array.isArray(parsed)) {
-        return parsed;
+        return parsed.map((product) => ({
+          ...product,
+          lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(product),
+        }));
       }
     }
   } catch {
@@ -243,7 +346,10 @@ export async function hydrateProducts() {
 
   if (error || !Array.isArray(data?.products)) return getStoredProducts();
 
-  const remoteProducts = data.products as Product[];
+  const remoteProducts = (data.products as Product[]).map((product) => ({
+    ...product,
+    lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(product),
+  }));
   products = remoteProducts;
   if (typeof window !== "undefined") {
     window.localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(remoteProducts));

@@ -39,6 +39,7 @@ import {
   BarChart3,
   RotateCcw,
   Package,
+  Pencil,
 } from "lucide-react";
 import {
   getStoredProducts,
@@ -64,6 +65,9 @@ import {
 } from "@/lib/site-content";
 import BrandLogo from "@/components/BrandLogo";
 import ImageUploader from "@/components/ImageUploader";
+import LensConfigurationEditor from "@/components/LensConfigurationEditor";
+import type { ProductLensConfiguration, PrescriptionSubmission } from "@/types/product";
+import { getPrescriptionSubmissions } from "@/lib/prescription-uploads";
 
 /* ─── Auth ─── */
 const AUTH_KEY = "drishyam_admin_auth";
@@ -132,6 +136,13 @@ const defaultNewProduct = {
   size: "Medium" as Product["size"],
   prescription: true,
 };
+
+const emptyLensConfiguration = (): ProductLensConfiguration => ({
+  enabled: true,
+  visionTypes: [],
+  additionalOptions: [],
+  prescription: { enabled: false, required: false, accept: ".pdf,image/*", maxSizeMb: 10 },
+});
 
 /* ══════════════════════════════════════
    PRODUCT SECTION COMPONENT
@@ -281,6 +292,7 @@ export default function AdminPage() {
   const [content, setContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
   const [productList, setProductList] = useState<Product[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
+  const [prescriptionSubmissions, setPrescriptionSubmissions] = useState<PrescriptionSubmission[]>([]);
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newSale, setNewSale] = useState(defaultSale);
@@ -294,12 +306,18 @@ export default function AdminPage() {
   const [newProduct, setNewProduct] = useState(defaultNewProduct);
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
+  const [editingLensProductId, setEditingLensProductId] = useState<string | null>(null);
+  const [editingLensConfiguration, setEditingLensConfiguration] = useState<ProductLensConfiguration>(emptyLensConfiguration());
+  const [newLensConfiguration, setNewLensConfiguration] = useState<ProductLensConfiguration>(emptyLensConfiguration());
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editingProductDraft, setEditingProductDraft] = useState<Product | null>(null);
 
   /* ── Hydrate ── */
   useEffect(() => {
     setContent(getSiteContent());
     setProductList(getStoredProducts());
     setLeads(getOnboardingLeads());
+    void getPrescriptionSubmissions().then(setPrescriptionSubmissions);
     setIsHydrated(true);
     void Promise.all([hydrateSiteContent(), hydrateProducts()]).then(([remoteContent, remoteProducts]) => {
       setContent(remoteContent);
@@ -508,6 +526,11 @@ export default function AdminPage() {
 
   /* ── Key Metrics Handlers ── */
   const addMetricCard = () => {
+    if ((content.metrics ?? []).length >= 3) {
+      setToastMessage("You can add a maximum of 3 stat cards.");
+      return;
+    }
+
     const newMetric: HomeMetric = {
       id: `metric-${Date.now()}`,
       value: "99%",
@@ -591,13 +614,58 @@ export default function AdminPage() {
       dimensions: "50-20-145",
       isBestSeller: false,
       isNew: true,
+      lensConfiguration: newLensConfiguration.visionTypes.length > 0 ? newLensConfiguration : undefined,
     };
     const updated = [...productList, product];
     saveProducts(updated);
     setProductList(updated);
     setToastMessage(`"${name}" added to catalogue! Now pin it to a section below.`);
     setNewProduct({ ...defaultNewProduct, category: categoryOptions[0] as Product["category"] });
+    setNewLensConfiguration(emptyLensConfiguration());
     setAddProductOpen(false);
+  };
+
+  const startLensConfigurationEdit = (product: Product) => {
+    setEditingProductId(null);
+    setEditingProductDraft(null);
+    if (editingLensProductId === product.id) {
+      setEditingLensProductId(null);
+      return;
+    }
+    setEditingLensProductId(product.id);
+    setEditingLensConfiguration(product.lensConfiguration ?? emptyLensConfiguration());
+  };
+
+  const saveLensConfiguration = (productId: string) => {
+    const updated = productList.map((product) => product.id === productId ? { ...product, lensConfiguration: editingLensConfiguration } : product);
+    void saveProducts(updated);
+    setProductList(updated);
+    setEditingLensProductId(null);
+    setToastMessage("Lens configuration saved for this product.");
+  };
+
+  const startProductEdit = (product: Product) => {
+    setEditingLensProductId(null);
+    setEditingProductId(product.id);
+    setEditingProductDraft({ ...product });
+  };
+
+  const saveProductEdit = () => {
+    if (!editingProductDraft) return;
+    const name = editingProductDraft.name.trim();
+    const slug = editingProductDraft.slug.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+    if (!name || !slug || !Number.isFinite(editingProductDraft.price) || editingProductDraft.price <= 0) {
+      setToastMessage("Product name, slug, and a valid price are required.");
+      return;
+    }
+    const updated = productList.map((product) => product.id === editingProductDraft.id
+      ? { ...editingProductDraft, name, slug }
+      : product);
+    void saveProducts(updated);
+    setProductList(updated);
+    setEditingProductId(null);
+    setEditingProductDraft(null);
+    setToastMessage("Product details saved.");
   };
 
   const handleDeleteProduct = (id: string, name: string) => {
@@ -758,10 +826,10 @@ export default function AdminPage() {
         />
       )}
 
-      <div className="flex min-h-screen">
+      <div className="min-h-screen">
         {/* ══ SIDEBAR ══ */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 flex w-68 flex-col bg-[#0f172a] p-5 text-white transition-transform duration-300 lg:static lg:translate-x-0 lg:z-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col overflow-y-auto bg-[#0f172a] p-5 text-white transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
             }`}
         >
           <button
@@ -818,9 +886,9 @@ export default function AdminPage() {
         </aside>
 
         {/* ══ MAIN WORKSPACE ══ */}
-        <div className="flex-1 min-w-0">
-          {/* Top Sticky Bar */}
-          <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-[#eadcc6] bg-white/90 px-4 py-3 backdrop-blur-md sm:px-6">
+        <div className="min-w-0 lg:ml-72">
+          {/* Top Fixed Bar */}
+          <header className="fixed inset-x-0 top-0 left-0 z-30 flex min-h-[68px] items-center justify-between gap-4 border-b border-[#eadcc6] bg-white/95 px-4 py-3 shadow-sm backdrop-blur-md sm:px-6 ">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -848,7 +916,7 @@ export default function AdminPage() {
             </button>
           </header>
 
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className="px-2 pb-4 pt-[92px]  sm:pb-6 sm:pt-4  lg:pb-4 ">
             {/* ══ 1. OVERVIEW TAB ══ */}
             {activeTab === "overview" && (
               <div className="space-y-8">
@@ -1282,6 +1350,13 @@ export default function AdminPage() {
                             className={`${fieldClass} resize-none`}
                           />
                         </label>
+                        <div className="sm:col-span-2">
+                          <LensConfigurationEditor
+                            value={newLensConfiguration}
+                            onChange={setNewLensConfiguration}
+                            fieldClass={fieldClass}
+                          />
+                        </div>
                       </div>
                       <div className="mt-6 flex justify-end">
                         <button
@@ -1357,32 +1432,79 @@ export default function AdminPage() {
                       </p>
                     </div>
                   ) : (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 items-start">
                       {filteredCatalogProducts.map((p) => {
                         const img = typeof p.images[0] === "string" ? p.images[0] : (p.images[0] as any)?.src;
+                        const isEditingLensConfiguration = editingLensProductId === p.id;
                         return (
                           <div
                             key={p.id}
-                            className="flex items-center gap-3.5 rounded-2xl border border-[#f1e8db] bg-[#fffaf5] p-3 transition hover:border-[#f59e0b]"
+                            className="rounded-2xl border border-[#f1e8db] bg-[#fffaf5] p-3 transition hover:border-[#f59e0b]"
                           >
-                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white border border-[#eadcc6]">
-                              <img src={img} alt={p.name} className="h-full w-full object-cover" />
+                            <div className="flex items-center gap-1">
+                              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-white border border-[#eadcc6]">
+                                <img src={img} alt={p.name} className="h-full w-full object-cover" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-semibold text-[#111111]">{p.name}</p>
+                                <p className="text-[11px] font-bold text-[#a55d00]">₹{p.price}</p>
+                                <p className="truncate text-[10px] uppercase -[0.14em] text-[#111111]/45">
+                                  {p.category} &middot; {p.shape}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => startLensConfigurationEdit(p)}
+                                className="shrink-0 rounded-xl border border-[#eadcc6] bg-white px-2.5 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#111111]/70 hover:border-[#f59e0b]"
+                              >
+                                {editingLensProductId === p.id ? "Close lenses" : p.lensConfiguration?.enabled ? "Edit lenses" : "Add lenses"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => startProductEdit(p)}
+                                className="shrink-0 rounded-xl border border-[#111111] bg-[#111111] h-9 w-9 text-[10px] font-bold uppercase tracking-[0.12em] text-white hover:bg-[#333] flex justify-center items-center"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteProduct(p.id, p.name)}
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                                aria-label={`Delete ${p.name}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-semibold text-[#111111]">{p.name}</p>
-                              <p className="text-[11px] font-bold text-[#a55d00]">₹{p.price}</p>
-                              <p className="truncate text-[10px] uppercase -[0.14em] text-[#111111]/45">
-                                {p.category} &middot; {p.shape}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteProduct(p.id, p.name)}
-                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                              aria-label={`Delete ${p.name}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            {isEditingLensConfiguration && (
+                              <div className="mt-3 border-t border-[#f1e8db] pt-3">
+                                <LensConfigurationEditor
+                                  value={editingLensConfiguration}
+                                  onChange={setEditingLensConfiguration}
+                                  fieldClass={fieldClass}
+                                />
+                                <div className="mt-2 flex justify-end gap-2">
+                                  <button type="button" onClick={() => setEditingLensProductId(null)} className="rounded-xl border border-[#eadcc6] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em]">Cancel</button>
+                                  <button type="button" onClick={() => saveLensConfiguration(p.id)} className="rounded-xl bg-[#111111] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Save lenses</button>
+                                </div>
+                              </div>
+                            )}
+                            {editingProductId === p.id && editingProductDraft && (
+                              <div className="mt-3 border-t border-[#f1e8db] pt-3">
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Product name</span><input value={editingProductDraft.name} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, name: event.target.value })} className={fieldClass} /></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">URL slug</span><input value={editingProductDraft.slug} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, slug: event.target.value })} className={fieldClass} /></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Price (₹)</span><input type="number" min="0" value={editingProductDraft.price} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, price: Number(event.target.value) || 0 })} className={fieldClass} /></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Category</span><select value={editingProductDraft.category} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, category: event.target.value })} className={fieldClass}>{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Shape</span><select value={editingProductDraft.shape} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, shape: event.target.value })} className={fieldClass}>{["Oval", "Round", "Square", "Heart", "Diamond", "Rectangle", "Aviator", "Geometric", "Cat-Eye"].map((shape) => <option key={shape}>{shape}</option>)}</select></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Image URL</span><input value={typeof editingProductDraft.images[0] === "string" ? editingProductDraft.images[0] : editingProductDraft.images[0].src} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, images: [event.target.value, event.target.value] })} className={fieldClass} /></label>
+                                  <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Description</span><textarea value={editingProductDraft.description} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, description: event.target.value })} rows={3} className={`${fieldClass} resize-y`} /></label>
+                                </div>
+                                <div className="mt-3 flex justify-end gap-2">
+                                  <button type="button" onClick={() => { setEditingProductId(null); setEditingProductDraft(null); }} className="rounded-xl border border-[#eadcc6] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em]">Cancel</button>
+                                  <button type="button" onClick={saveProductEdit} className="rounded-xl bg-[#111111] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Save product</button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -1721,16 +1843,17 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={addMetricCard}
-                      className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#111111] px-4 py-2.5 text-[10px] font-bold uppercase -[0.2em] text-white hover:bg-[#333] transition-colors"
+                      disabled={(content.metrics ?? []).length >= 3}
+                      className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#111111] px-4 py-2.5 text-[10px] font-bold uppercase -[0.2em] text-white hover:bg-[#333] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Plus className="h-4 w-4" />
-                      Add Stat Card
+                      Add Stat Card ({Math.min(content.metrics?.length ?? 0, 3)}/3)
                     </button>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-3">
                     {(content.metrics ?? []).map((metric, i) => (
-                      <div key={metric.id || i} className="rounded-2xl border border-[#f1e8db] bg-[#fffaf5] p-4 flex items-center justify-between gap-3">
+                      <div key={metric.id || i} className="rounded-2xl relative border border-[#f1e8db] bg-[#fffaf5] p-4 flex items-start justify-between gap-3">
                         <div className="space-y-2 flex-1">
                           <label className="block">
                             <span className="text-[9px] font-bold uppercase -[0.16em] text-[#111111]/55">Stat Value</span>
@@ -1754,7 +1877,7 @@ export default function AdminPage() {
                         <button
                           type="button"
                           onClick={() => removeMetricCard(i)}
-                          className="text-red-500 hover:text-red-700 p-2 self-center"
+                          className="text-red-500 hover:text-red-700 p-2 absolute top-2 right-2"
                           aria-label="Remove metric"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1780,7 +1903,31 @@ export default function AdminPage() {
 
             {/* ══ 5. CUSTOMERS TAB ══ */}
             {activeTab === "customers" && (
-              <section className="rounded-[28px] border border-[#eadcc6] bg-white p-5 sm:p-6 shadow-[0_20px_55px_rgba(17,17,17,0.04)]">
+              <section className="space-y-6">
+                <div className="rounded-[28px] border border-[#eadcc6] bg-white p-5 sm:p-6 shadow-[0_20px_55px_rgba(17,17,17,0.04)]">
+                  <div className="mb-5">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a55d00]">Prescription review</p>
+                    <h3 className="mt-1 text-2xl font-semibold">Prescription Uploads</h3>
+                    <p className="mt-1 text-sm text-[#111111]/50">Files uploaded by customers are listed here.</p>
+                  </div>
+                  {prescriptionSubmissions.length === 0 ? (
+                    <div className="rounded-[22px] border border-dashed border-[#eadcc6] bg-[#fffaf5] p-8 text-center text-sm text-[#111111]/45">No prescription uploads yet.</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {prescriptionSubmissions.map((submission) => (
+                        <div key={submission.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#f1e8db] bg-[#fffaf5] p-4">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-[#111111]">{submission.fileName}</p>
+                            <p className="mt-1 text-xs text-[#111111]/55">{submission.productName} &middot; {(submission.fileSize / 1024 / 1024).toFixed(2)} MB &middot; {new Date(submission.createdAt).toLocaleString()}</p>
+                          </div>
+                          <a href={submission.fileUrl} target="_blank" rel="noreferrer" className="rounded-xl bg-[#111111] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white hover:bg-[#f59e0b] hover:text-[#111111]">View file</a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-[28px] border border-[#eadcc6] bg-white p-5 sm:p-6 shadow-[0_20px_55px_rgba(17,17,17,0.04)]">
                 <div className="mb-6 flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-bold uppercase -[0.22em] text-[#a55d00]">Customer Relationship</p>
@@ -1850,6 +1997,7 @@ export default function AdminPage() {
                     )}
                   </div>
                 )}
+                </div>
               </section>
             )}
 
