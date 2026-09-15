@@ -3,6 +3,35 @@ import { supabase } from "@/lib/supabase";
 
 const PRODUCT_STORAGE_KEY = "drishyam_products";
 
+function createFocalVisionType(image: string): NonNullable<Product["lensConfiguration"]>["visionTypes"][number] {
+  return {
+    id: "focal",
+    name: "Focal",
+    image,
+    description: "Choose the viewing distance that suits your daily routine.",
+    lensOptions: [
+      { id: "focal-near", name: "Near Focal", price: 800, description: "Optimized for reading and close-up work." },
+      { id: "focal-intermediate", name: "Intermediate Focal", price: 800, description: "Comfortable vision for screens and arm's-length tasks." },
+      { id: "focal-distance", name: "Distance Focal", price: 800, description: "Clear vision for walking, driving, and outdoor use." },
+      { id: "focal-all", name: "All Focal", price: 1800, description: "Balanced near, intermediate, and distance vision in one lens." },
+    ],
+  };
+}
+
+function ensureFocalVisionType(product: Product): Product {
+  const lensConfiguration = product.lensConfiguration;
+  if (!lensConfiguration || lensConfiguration.visionTypes.some((vision) => vision.id === "focal")) return product;
+
+  const image = typeof product.images[0] === "string" ? product.images[0] : product.images[0]?.src ?? "";
+  return {
+    ...product,
+    lensConfiguration: {
+      ...lensConfiguration,
+      visionTypes: [...lensConfiguration.visionTypes, createFocalVisionType(image)],
+    },
+  };
+}
+
 function createCatalogLensConfiguration(product: Product): Product["lensConfiguration"] {
   const images = product.images.map((image) => typeof image === "string" ? image : image.src);
   const image = (index: number) => images[index % images.length] ?? images[0] ?? "";
@@ -28,6 +57,7 @@ function createCatalogLensConfiguration(product: Product): Product["lensConfigur
           { id: "single-premium", name: "Premium Single Vision", price: 1200, description: "Thinner, lighter lenses with premium coating." },
         ],
       },
+      createFocalVisionType(image(1)),
       {
         id: "progressive",
         name: "Progressive",
@@ -266,6 +296,7 @@ export const defaultProducts: Product[] = [
 
 defaultProducts.forEach((product) => {
   if (!product.lensConfiguration) product.lensConfiguration = createCatalogLensConfiguration(product);
+  else Object.assign(product, ensureFocalVisionType(product));
 });
 
 export function getStoredProducts(): Product[] {
@@ -280,7 +311,7 @@ export function getStoredProducts(): Product[] {
       const parsed = JSON.parse(raw);
 
       if (Array.isArray(parsed)) {
-        return parsed.map((product) => ({
+        return parsed.map((product) => ensureFocalVisionType({
           ...product,
           lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(product),
         }));
@@ -346,7 +377,7 @@ export async function hydrateProducts() {
 
   if (error || !Array.isArray(data?.products)) return getStoredProducts();
 
-  const remoteProducts = (data.products as Product[]).map((product) => ({
+  const remoteProducts = (data.products as Product[]).map((product) => ensureFocalVisionType({
     ...product,
     lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(product),
   }));

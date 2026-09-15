@@ -10,6 +10,7 @@ import SearchModal from "@/components/SearchModal";
 import MobileMenu from "@/components/MobileMenu";
 import CartDrawer from "@/components/CartDrawer";
 import { getStoredProducts, hydrateProducts, products as initialProducts } from "@/data/products";
+import { getCategoryProductIds, getSiteContent, hydrateSiteContent } from "@/lib/site-content";
 import { Product } from "@/types/product";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
 
@@ -34,17 +35,22 @@ function ShopContent() {
   const [allProductsList, setAllProductsList] = useState<Product[]>(initialProducts);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
   const [isMobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [siteContent, setSiteContent] = useState<Awaited<ReturnType<typeof getSiteContent>> | null>(null);
 
   useEffect(() => {
     const sync = () => {
       setAllProductsList(getStoredProducts());
+      setSiteContent(getSiteContent());
     };
     void hydrateProducts().then(setAllProductsList);
+    void hydrateSiteContent().then(setSiteContent);
     window.addEventListener("storage", sync);
     window.addEventListener("drishyam:products-update", sync);
+    window.addEventListener("drishyam:content-update", sync);
     return () => {
       window.removeEventListener("storage", sync);
       window.removeEventListener("drishyam:products-update", sync);
+      window.removeEventListener("drishyam:content-update", sync);
     };
   }, []);
 
@@ -65,10 +71,18 @@ function ShopContent() {
   // Apply filters and sort
   useEffect(() => {
     let result = [...allProductsList];
+    const matchedCategory = siteContent?.categories.find((category) =>
+      category.name.toLowerCase() === filters.category.toLowerCase()
+      || category.slug.toLowerCase() === filters.category.toLowerCase()
+    );
+    const assignedIds = siteContent && matchedCategory
+      ? getCategoryProductIds(siteContent, matchedCategory.id, matchedCategory.name)
+      : [];
+    const assignedProducts = allProductsList.filter((product) => assignedIds.includes(product.id));
 
     // Filter by Category
     if (filters.category) {
-      result = result.filter((p) => p.category === filters.category);
+      result = result.filter((p) => p.category.toLowerCase() === filters.category.toLowerCase());
     }
 
     // Filter by Gender
@@ -101,8 +115,10 @@ function ShopContent() {
       result.sort((a, b) => b.rating - a.rating);
     }
 
-    setFilteredProducts(result);
-  }, [filters, sortBy, searchParams]);
+    setFilteredProducts(assignedIds.length > 0
+      ? [...assignedProducts, ...result.filter((product) => !assignedIds.includes(product.id))]
+      : result);
+  }, [allProductsList, filters, siteContent, sortBy, searchParams]);
 
   const resetFilters = () => {
     setFilters(initialFilters);

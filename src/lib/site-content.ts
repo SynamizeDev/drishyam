@@ -87,10 +87,29 @@ export interface SiteContent {
   featuredProductIds?: string[];
   newArrivalProductIds?: string[];
   shopByStyleProductIds?: string[];
+  categoryProductIds?: Record<string, string[]>;
   eyeglassesProductIds?: string[];
   sunglassesProductIds?: string[];
   contactLensProductIds?: string[];
   sales: OfflineSaleRecord[];
+}
+
+export function getCategoryProductIds(
+  content: SiteContent,
+  categoryId: string,
+  categoryName: string
+): string[] {
+  const configuredIds = content.categoryProductIds?.[categoryId];
+  if (configuredIds) return configuredIds;
+
+  const normalizedName = categoryName.toLowerCase();
+  if (normalizedName === "eyeglasses") return content.eyeglassesProductIds ?? [];
+  if (normalizedName === "sunglasses") return content.sunglassesProductIds ?? [];
+  if (normalizedName === "contact lens" || normalizedName === "contact lense") {
+    return content.contactLensProductIds ?? [];
+  }
+
+  return [];
 }
 
 export interface OnboardingLead {
@@ -224,6 +243,11 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   featuredProductIds: ["frame-001", "frame-002", "frame-004", "frame-005"],
   newArrivalProductIds: ["frame-003", "frame-006", "frame-007", "frame-010"],
   shopByStyleProductIds: ["frame-001", "frame-003", "frame-005", "frame-008"],
+  categoryProductIds: {
+    "cat-eyeglasses": ["frame-001", "frame-003", "frame-005"],
+    "cat-sunglasses": ["frame-002", "frame-004", "frame-008"],
+    "cat-contact-lens": ["frame-006", "frame-007"],
+  },
   eyeglassesProductIds: ["frame-001", "frame-003", "frame-005"],
   sunglassesProductIds: ["frame-002", "frame-004", "frame-008"],
   contactLensProductIds: ["frame-006", "frame-007"],
@@ -281,6 +305,7 @@ function mergeContent(saved: Partial<SiteContent>): SiteContent {
     featuredProductIds: saved.featuredProductIds ?? DEFAULT_SITE_CONTENT.featuredProductIds,
     newArrivalProductIds: saved.newArrivalProductIds ?? DEFAULT_SITE_CONTENT.newArrivalProductIds,
     shopByStyleProductIds: saved.shopByStyleProductIds ?? DEFAULT_SITE_CONTENT.shopByStyleProductIds,
+    categoryProductIds: saved.categoryProductIds ?? DEFAULT_SITE_CONTENT.categoryProductIds,
     eyeglassesProductIds: saved.eyeglassesProductIds ?? DEFAULT_SITE_CONTENT.eyeglassesProductIds,
     sunglassesProductIds: saved.sunglassesProductIds ?? DEFAULT_SITE_CONTENT.sunglassesProductIds,
     contactLensProductIds: saved.contactLensProductIds ?? DEFAULT_SITE_CONTENT.contactLensProductIds,

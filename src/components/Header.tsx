@@ -5,6 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { Search, ShoppingBag, Heart, User, Menu } from "lucide-react";
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
+import { motion } from "framer-motion";
 
 export default function Header() {
   const { cartCount, wishlist, setSearchOpen, setCartOpen, setMobileMenuOpen, setOnboardingOpen } = useApp();
@@ -30,16 +31,73 @@ export default function Header() {
 
   return (
     <>
-      <div className="hidden border-b border-white/10 bg-[#0d0d0c] px-6 py-2 text-[10px] font-medium uppercase tracking-[0.18em] text-white/65 lg:block">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <span>Curated eyewear for every point of view</span>
-          <div className="flex items-center gap-5">
-            <Link className="transition-colors hover:text-[#f2c66d]" href="/shop?new=true">New arrivals</Link>
-            <Link className="transition-colors hover:text-[#f2c66d]" href="/try-on">Virtual try-on</Link>
-            <Link className="transition-colors hover:text-[#f2c66d]" href="/admin">Store login</Link>
-          </div>
-        </div>
+<div className="hidden overflow-hidden border-b border-white/10 bg-[#f2c66d] text-black lg:block">
+  <div className="flex h-8 overflow-hidden">
+    <motion.div
+      className="flex shrink-0 items-center whitespace-nowrap text-[10px] font-medium uppercase tracking-[0.18em]"
+      animate={{ x: ["0%", "-50%"] }}
+      transition={{
+        x: {
+          duration: 10,
+          repeat: Infinity,
+          ease: "linear",
+        },
+      }}
+    >
+      {/* First content */}
+      <div className="flex shrink-0 items-center gap-10 px-6">
+        <span>Curated eyewear for every point of view</span>
+
+        <Link
+          className="transition-colors hover:text-white"
+          href="/shop?new=true"
+        >
+          New arrivals
+        </Link>
+
+        <Link
+          className="transition-colors hover:text-white"
+          href="/try-on"
+        >
+          Virtual try-on
+        </Link>
+
+        <Link
+          className="transition-colors hover:text-white"
+          href="/admin"
+        >
+          Store login
+        </Link>
       </div>
+
+      {/* Duplicate for seamless loop */}
+      <div className="flex shrink-0 items-center gap-10 px-6">
+        <span>Curated eyewear for every point of view</span>
+
+        <Link
+          className="transition-colors hover:text-white"
+          href="/shop?new=true"
+        >
+          New arrivals
+        </Link>
+
+        <Link
+          className="transition-colors hover:text-white"
+          href="/try-on"
+        >
+          Virtual try-on
+        </Link>
+
+        <Link
+          className="transition-colors hover:text-white"
+          href="/admin"
+        >
+          Store login
+        </Link>
+      </div>
+    </motion.div>
+  </div>
+</div>
       <header className={`fixed left-0 right-0 top-0 z-40 w-full border-b border-white/10 bg-[#151513]/95 text-white backdrop-blur-xl transition-all duration-300 ${isScrolled ? "py-2.5 shadow-[0_14px_35px_rgba(0,0,0,0.28)]" : "py-1 lg:py-2"}`}>
         <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">

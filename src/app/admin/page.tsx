@@ -102,11 +102,21 @@ const AVAILABLE_ICONS = [
 type ConfirmAction = { title: string; message: string; confirmLabel: string; onConfirm: () => void };
 const PAGE_SIZE = 10;
 
-const CATEGORY_SECTIONS = [
-  { key: "eyeglassesProductIds" as const, name: "Eyeglasses", icon: Glasses, color: "bg-blue-100 text-blue-600" },
-  { key: "sunglassesProductIds" as const, name: "Sunglasses", icon: ShoppingBag, color: "bg-amber-100 text-amber-600" },
-  { key: "contactLensProductIds" as const, name: "Contact Lens", icon: Eye, color: "bg-pink-100 text-pink-600" },
-];
+const getCategorySectionIcon = (name: string): React.ElementType => {
+  const normalizedName = name.toLowerCase();
+  if (normalizedName.includes("sun")) return ShoppingBag;
+  if (normalizedName.includes("contact")) return Eye;
+  if (normalizedName.includes("glass")) return Glasses;
+  return Tag;
+};
+
+const getLegacyCategoryKey = (name: string) => {
+  const normalizedName = name.toLowerCase();
+  if (normalizedName === "eyeglasses") return "eyeglassesProductIds" as const;
+  if (normalizedName === "sunglasses") return "sunglassesProductIds" as const;
+  if (normalizedName === "contact lens" || normalizedName === "contact lense") return "contactLensProductIds" as const;
+  return null;
+};
 
 /* ─── Validation ─── */
 const validateCategory = (cat: SiteContent["categories"][number]) => {
@@ -383,6 +393,26 @@ export default function AdminPage() {
     });
   }, []);
 
+  const toggleCategoryProducts = useCallback((category: SiteContent["categories"][number], productId: string) => {
+    setContent((currentContent) => {
+      const legacyKey = getLegacyCategoryKey(category.name);
+      const currentIds = currentContent.categoryProductIds?.[category.id]
+        ?? (legacyKey ? currentContent[legacyKey] ?? [] : []);
+      const nextIds = currentIds.includes(productId)
+        ? currentIds.filter((id) => id !== productId)
+        : [...currentIds, productId];
+      const nextCategoryProductIds = {
+        ...(currentContent.categoryProductIds ?? {}),
+        [category.id]: nextIds,
+      };
+      const nextContent = legacyKey
+        ? { ...currentContent, categoryProductIds: nextCategoryProductIds, [legacyKey]: nextIds }
+        : { ...currentContent, categoryProductIds: nextCategoryProductIds };
+      saveSiteContent(nextContent);
+      return nextContent;
+    });
+  }, []);
+
   /* ── Banner handlers ── */
   const updateHeroSlide = (i: number, field: string, value: string) =>
     setContent((c) => {
@@ -585,11 +615,11 @@ export default function AdminPage() {
       .filter(Boolean);
 
     if (!name || !slug || imageUrls.length === 0 || !Number.isFinite(price) || price <= 0) {
-      setToastMessage("Please fill in all required fields (Name, Slug, Image, Price). Use a direct image URL or two URLs separated by commas.");
+      setToastMessage("Please fill in all required fields (Name, Slug, Image, Price). Use one or more direct image URLs separated by commas.");
       return;
     }
 
-    const uniqueImageUrls = [...new Set(imageUrls)].slice(0, 2);
+    const uniqueImageUrls = [...new Set(imageUrls)];
     const galleryImages = uniqueImageUrls.length === 1
       ? [uniqueImageUrls[0], uniqueImageUrls[0]]
       : uniqueImageUrls;
@@ -677,8 +707,15 @@ export default function AdminPage() {
         const next = deleteProductFromCatalog(id);
         setProductList(next);
         setContent((c) => {
+          const categoryProductIds = Object.fromEntries(
+            Object.entries(c.categoryProductIds ?? {}).map(([categoryId, productIds]) => [
+              categoryId,
+              productIds.filter((productId) => productId !== id),
+            ])
+          );
           const nextContent = {
             ...c,
+            categoryProductIds,
             featuredProductIds: (c.featuredProductIds ?? []).filter((pid) => pid !== id),
             newArrivalProductIds: (c.newArrivalProductIds ?? []).filter((pid) => pid !== id),
             shopByStyleProductIds: (c.shopByStyleProductIds ?? []).filter((pid) => pid !== id),
@@ -1261,7 +1298,7 @@ export default function AdminPage() {
                     <div>
                       <p className="text-[10px] font-bold uppercase -[0.22em] text-[#a55d00]">Step 2</p>
                       <h3 className="mt-1 text-2xl font-semibold">Add New Product to Catalogue</h3>
-                      <p className="mt-1 text-sm text-[#111111]/50">Upload frame images from your computer or URL to add to inventory.</p>
+                      <p className="mt-1 text-sm text-[#111111]/50">Add multiple frame photos with uploads or direct image URLs separated by commas.</p>
                     </div>
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#111111] text-white transition-transform ${addProductOpen ? "rotate-45" : ""}`}>
                       <Plus className="h-5 w-5" />
@@ -1313,10 +1350,11 @@ export default function AdminPage() {
 
                         {/* Image Uploader */}
                         <ImageUploader
-                          label="Product Image *"
+                          label="Product Photos *"
                           value={newProduct.image}
                           onChange={(val) => setNewProduct((p) => ({ ...p, image: val }))}
                           aspectRatio="video"
+                          multiple
                           className="sm:col-span-2"
                         />
 
@@ -1496,7 +1534,7 @@ export default function AdminPage() {
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Price (₹)</span><input type="number" min="0" value={editingProductDraft.price} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, price: Number(event.target.value) || 0 })} className={fieldClass} /></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Category</span><select value={editingProductDraft.category} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, category: event.target.value })} className={fieldClass}>{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Shape</span><select value={editingProductDraft.shape} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, shape: event.target.value })} className={fieldClass}>{["Oval", "Round", "Square", "Heart", "Diamond", "Rectangle", "Aviator", "Geometric", "Cat-Eye"].map((shape) => <option key={shape}>{shape}</option>)}</select></label>
-                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Image URL</span><input value={typeof editingProductDraft.images[0] === "string" ? editingProductDraft.images[0] : editingProductDraft.images[0].src} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, images: [event.target.value, event.target.value] })} className={fieldClass} /></label>
+                                  <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Product photo URLs (comma separated)</span><input value={editingProductDraft.images.map((image) => typeof image === "string" ? image : image.src).join(",")} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, images: event.target.value.split(",").map((image) => image.trim()).filter(Boolean) })} className={fieldClass} /></label>
                                   <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Description</span><textarea value={editingProductDraft.description} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, description: event.target.value })} rows={3} className={`${fieldClass} resize-y`} /></label>
                                 </div>
                                 <div className="mt-3 flex justify-end gap-2">
@@ -1556,21 +1594,24 @@ export default function AdminPage() {
                     <p className="text-[10px] font-bold uppercase -[0.22em] text-[#a55d00]">Step 5</p>
                     <h3 className="mt-1 text-2xl font-semibold text-[#111111]">Manage Products by Category</h3>
                     <p className="mt-1.5 text-sm text-[#111111]/50">
-                      Assign products to specific categories (Eyeglasses, Sunglasses, Contact Lens). These will appear on their respective category pages.
+                      Assign products to any category card shown on the frontend. These products will appear on their respective category pages.
                     </p>
                   </div>
 
                   <div className="grid gap-5 lg:grid-cols-3">
-                    {CATEGORY_SECTIONS.map((section) => {
-                      const Icon = section.icon;
+                    {content.categories.map((category) => {
+                      const Icon = getCategorySectionIcon(category.name);
+                      const legacyKey = getLegacyCategoryKey(category.name);
+                      const selectedIds = content.categoryProductIds?.[category.id]
+                        ?? (legacyKey ? content[legacyKey] ?? [] : []);
                       return (
                         <ProductSectionPanel
-                          key={section.key}
-                          title={section.name}
+                          key={category.id}
+                          title={category.name}
                           icon={Icon}
-                          iconColor={section.color}
-                          selectedIds={content[section.key] ?? []}
-                          onToggle={(id) => toggleSection(section.key, id)}
+                          iconColor="bg-amber-100 text-amber-600"
+                          selectedIds={selectedIds}
+                          onToggle={(id) => toggleCategoryProducts(category, id)}
                           allProductsList={productList}
                         />
                       );

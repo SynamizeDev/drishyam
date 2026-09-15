@@ -171,7 +171,7 @@ export default function ProductDetailPage({ params }: PageProps) {
       <Header />
 
       <main className="flex-1 bg-[radial-gradient(circle_at_top,_#fffaf5_0%,_#f4efe6_28%,_#ffffff_100%)] text-charcoal">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+        <section className="hidden mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
           <div className="mb-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.26em] text-charcoal/50">
             <Link
               href="/shop"
@@ -360,6 +360,214 @@ export default function ProductDetailPage({ params }: PageProps) {
             </div>
           </div>
         </section>
+        <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+  {/* Back to Shop */}
+  <div className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-charcoal/50">
+    <Link
+      href="/shop"
+      className="flex items-center gap-2 transition-colors hover:text-charcoal"
+    >
+      <ArrowLeft className="h-3.5 w-3.5" />
+      Back to shop
+    </Link>
+  </div>
+
+  <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
+    {/* =========================
+        LEFT — PRODUCT IMAGE
+    ========================== */}
+    <div className="lg:col-span-7">
+      <div className="sticky top-6">
+        <div className="overflow-hidden rounded-[24px] border border-beige-100 bg-[#f9f3ed] shadow-[0_20px_60px_rgba(17,17,17,0.07)]">
+          <div className="relative aspect-[4/3] overflow-hidden">
+            {activeImage ? (
+              <Image
+                src={activeImage}
+                alt={product.name}
+                fill
+                priority
+                unoptimized
+                className="object-cover transition-transform duration-500 hover:scale-[1.02]"
+                sizes="(max-width: 1024px) 100vw, 58vw"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-gray-400">
+                No image available
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-4 gap-3">
+          {product.images.map((img, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setActiveImage(img)}
+              className={`relative aspect-[4/3] overflow-hidden rounded-2xl border transition-all duration-200 ${
+                activeImage === img
+                  ? "border-charcoal shadow-md shadow-charcoal/10"
+                  : "border-beige-100 hover:border-beige-200"
+              }`}
+            >
+              <Image
+                src={img}
+                alt={`Thumbnail ${idx + 1}`}
+                fill
+                unoptimized={true}
+                className="object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* =========================
+        RIGHT — PRODUCT DETAILS
+    ========================== */}
+    <div className="lg:col-span-5 lg:self-start">
+      <div className="rounded-[24px] border border-beige-100 bg-white/90 p-4 shadow-[0_14px_40px_rgba(17,17,17,0.045)] backdrop-blur-sm sm:p-5">
+        
+        {/* Product Header */}
+        <div className="border-b border-beige-100 pb-4">
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-saffron">
+            <span className="rounded-full border border-gold-200 bg-gold-50 px-2.5 py-1">
+              {product.category}
+            </span>
+
+            <span className="text-charcoal/45">
+              {product.shape}
+            </span>
+          </div>
+
+          <h1 className="text-3xl font-medium leading-[1.05] text-charcoal sm:text-4xl">
+            {product.name}
+          </h1>
+
+          <div className="mt-3 flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-0.5 text-yellow-500">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-3.5 w-3.5 ${
+                    i < Math.floor(product.rating)
+                      ? "fill-yellow-500"
+                      : "text-beige-200"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <span className="font-semibold text-charcoal">
+              {product.rating.toFixed(1)}
+            </span>
+
+            <span className="text-charcoal/45">
+              ({product.reviewsCount} reviews)
+            </span>
+          </div>
+        </div>
+
+        {/* Main Details */}
+        <div className="space-y-4 pt-4">
+
+          {/* Feature Highlights */}
+          <div className="grid grid-cols-3 gap-2">
+            {featureHighlights.map(
+              ({ icon: Icon, label, value }) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-beige-100 bg-[#fffdfb] p-2.5"
+                >
+                  <Icon className="mb-1.5 h-3.5 w-3.5 text-saffron" />
+
+                  <div className="text-[9px] font-bold uppercase tracking-[0.14em] text-charcoal/45">
+                    {label}
+                  </div>
+
+                  <div className="mt-0.5 text-xs font-semibold leading-tight text-charcoal">
+                    {value}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+
+          {/* =========================
+              EXISTING DYNAMIC CONFIGURATOR
+              DO NOT CHANGE
+          ========================== */}
+          <div>
+            <ProductLensConfigurator
+              product={product}
+              onChange={(selection, pricing, valid) => {
+                setConfigurationSelection(selection);
+                setConfigurationPricing(pricing);
+                setConfigurationValid(valid);
+              }}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="space-y-2.5 pt-1">
+            <div className="flex gap-2.5">
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 rounded-full bg-gradient-to-r from-saffron to-orange-500 px-4 py-3 text-xs font-semibold uppercase tracking-[0.15em] text-white shadow-md shadow-orange-200/50 transition hover:brightness-105"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <ShoppingBag className="h-3.5 w-3.5" />
+                  Add to bag
+                </span>
+              </button>
+
+              <button
+                onClick={() => toggleWishlist(product.id)}
+                aria-label="Toggle wishlist"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-beige-200 bg-white text-charcoal transition hover:border-charcoal/50 hover:bg-beige-50"
+              >
+                <Heart
+                  className={`h-4 w-4 ${
+                    isLiked
+                      ? "fill-red-500 text-red-500"
+                      : ""
+                  }`}
+                />
+              </button>
+            </div>
+
+            <button
+              onClick={handleEnquireNow}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-whatsapp py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-white shadow-md shadow-whatsapp/15 transition-all hover:scale-[1.005] hover:bg-whatsapp/90"
+            >
+              <WhatsAppIcon />
+              Enquire now
+            </button>
+          </div>
+        </div>
+
+        {/* Benefits */}
+        <div className="mt-4 grid grid-cols-3 gap-1.5 border-t border-beige-100 pt-3 text-[10px] text-charcoal/55">
+          <div className="flex items-center justify-center gap-1 rounded-lg bg-beige-50 px-1.5 py-2">
+            <ShieldCheck className="h-3 w-3 shrink-0 text-charcoal/65" />
+            Warranty
+          </div>
+
+          <div className="flex items-center justify-center gap-1 rounded-lg bg-beige-50 px-1.5 py-2">
+            <Truck className="h-3 w-3 shrink-0 text-charcoal/65" />
+            Free shipping
+          </div>
+
+          <div className="flex items-center justify-center gap-1 rounded-lg bg-beige-50 px-1.5 py-2">
+            <RotateCcw className="h-3 w-3 shrink-0 text-charcoal/65" />
+            Easy returns
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
         {/* <section className="border-y border-beige-100 bg-beige-50/30 py-16">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">

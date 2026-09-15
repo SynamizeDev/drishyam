@@ -9,7 +9,7 @@ import SearchModal from "@/components/SearchModal";
 import MobileMenu from "@/components/MobileMenu";
 import CartDrawer from "@/components/CartDrawer";
 import { getStoredProducts, hydrateProducts, defaultProducts as initialProducts } from "@/data/products";
-import { getSiteContent, hydrateSiteContent } from "@/lib/site-content";
+import { getCategoryProductIds, getSiteContent, hydrateSiteContent } from "@/lib/site-content";
 import { Product } from "@/types/product";
 import { SlidersHorizontal, ChevronDown, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -62,7 +62,9 @@ function ContactLensContent() {
 
   useEffect(() => {
     // Separate assigned and other products
-    const assignedIds = siteContent?.contactLensProductIds ?? [];
+    const assignedIds = siteContent
+      ? getCategoryProductIds(siteContent, "cat-contact-lens", "Contact Lens")
+      : [];
     const assignedProducts = allProductsList.filter(p => assignedIds.includes(p.id));
     let otherProducts = allProductsList.filter(p => !assignedIds.includes(p.id));
 

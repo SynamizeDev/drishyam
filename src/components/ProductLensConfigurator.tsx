@@ -28,6 +28,19 @@ function formatPrice(value: number) {
   return `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+const focalVisionId = "focal";
+const defaultVisionOptions = {
+  zeroPowerOptions: ["No Prescription / 0 Power"],
+  prescriptionTypes: ["Distance", "Near / Reading", "Computer / Intermediate"],
+  lensMaterials: ["Standard", "Polycarbonate", "High Index"],
+  lensCoatings: ["Anti-Glare", "Blue Light Filter", "UV Protection", "Scratch Resistant"],
+  pdTypes: ["Single PD", "Dual PD"],
+  progressiveDesigns: ["Standard Progressive", "Premium Progressive", "Premium Plus"],
+  progressiveMeasurements: ["Fitting Height", "Vertex Distance"],
+  photochromicVisionTypes: ["Zero Power", "Single Vision", "Progressive"],
+  photochromicTypes: ["Clear → Dark", "Grey", "Brown"],
+};
+
 export default function ProductLensConfigurator({ product, onChange }: ProductLensConfiguratorProps) {
   const configuration = product.lensConfiguration;
   const [selection, setSelection] = useState<ProductConfigurationSelection>(frameOnlySelection);
@@ -40,6 +53,20 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
   const lens = vision?.lensOptions.find((item) => item.id === selection.lensType);
   const corridor = vision?.corridors?.find((item) => item.id === selection.corridor);
   const additionalOptions = configuration.additionalOptions ?? [];
+  const visionOptions = {
+    ...defaultVisionOptions,
+    zeroPowerOptions: configuration.zeroPowerOptions?.length ? configuration.zeroPowerOptions : defaultVisionOptions.zeroPowerOptions,
+    prescriptionTypes: configuration.prescriptionTypes?.length ? configuration.prescriptionTypes : defaultVisionOptions.prescriptionTypes,
+    lensMaterials: configuration.lensMaterials?.length ? configuration.lensMaterials : defaultVisionOptions.lensMaterials,
+    lensCoatings: configuration.lensCoatings?.length ? configuration.lensCoatings : defaultVisionOptions.lensCoatings,
+    pdTypes: configuration.pdTypes?.length ? configuration.pdTypes : defaultVisionOptions.pdTypes,
+    progressiveDesigns: configuration.progressiveDesigns?.length ? configuration.progressiveDesigns : defaultVisionOptions.progressiveDesigns,
+    progressiveMeasurements: configuration.progressiveMeasurements?.length ? configuration.progressiveMeasurements : defaultVisionOptions.progressiveMeasurements,
+    photochromicVisionTypes: configuration.photochromicVisionTypes?.length ? configuration.photochromicVisionTypes : defaultVisionOptions.photochromicVisionTypes,
+    photochromicTypes: configuration.photochromicTypes?.length ? configuration.photochromicTypes : defaultVisionOptions.photochromicTypes,
+  };
+  const isZeroPowerSelection = vision?.id === "zero-power" || (vision?.id === "photochromic" && selection.photochromicVisionType === "Zero Power");
+  const isFocalSelection = vision?.id === focalVisionId;
   const optionsAmount = (lens?.price ?? 0) + (corridor?.price ?? 0) + additionalOptions
     .filter((item) => selection.additionalOptions?.includes(item.id))
     .reduce((total, item) => total + item.price, 0);
@@ -48,6 +75,8 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
     selection.purchaseType === "with-lenses" &&
     prescription?.enabled &&
     prescription.required &&
+    !isZeroPowerSelection &&
+    !isFocalSelection &&
     !selection.prescription
   );
   const valid = selection.purchaseType === "frame-only" || Boolean(
@@ -61,6 +90,8 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
     const nextVision = configuration.visionTypes.find((item) => item.id === next.visionType);
     const nextLens = nextVision?.lensOptions.find((item) => item.id === next.lensType);
     const nextCorridor = nextVision?.corridors?.find((item) => item.id === next.corridor);
+    const nextIsZeroPowerSelection = nextVision?.id === "zero-power" || (nextVision?.id === "photochromic" && next.photochromicVisionType === "Zero Power");
+    const nextIsFocalSelection = nextVision?.id === focalVisionId;
     const nextOptionsAmount = (nextLens?.price ?? 0) + (nextCorridor?.price ?? 0) + additionalOptions
       .filter((item) => next.additionalOptions?.includes(item.id))
       .reduce((total, item) => total + item.price, 0);
@@ -68,7 +99,7 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
       next.visionType &&
       next.lensType &&
       (!nextVision?.corridors?.length || next.corridor) &&
-      !(prescription?.enabled && prescription.required && !next.prescription)
+      !(prescription?.enabled && prescription.required && !nextIsZeroPowerSelection && !nextIsFocalSelection && !next.prescription)
     );
     setSelection(next);
     onChange(next, {
@@ -140,6 +171,65 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
     </button>
   );
 
+  const renderChoiceGroup = (
+    title: string,
+    options: string[],
+    selected: string | undefined,
+    onSelect: (value: string) => void,
+  ) => (
+    <div>
+      <h3 className="text-sm font-semibold text-charcoal">{title}</h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {options.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onSelect(option)}
+            className={`flex items-center gap-3 rounded-2xl border p-4 text-left text-sm transition ${selected === option ? "border-saffron bg-orange-50/60 ring-2 ring-saffron/15" : "border-beige-100 bg-white hover:border-saffron/50"}`}
+          >
+            <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${selected === option ? "border-saffron" : "border-charcoal/30"}`}>
+              {selected === option && <span className="h-2 w-2 rounded-full bg-saffron" />}
+            </span>
+            <span>{option}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderPrescriptionFields = (includeAdd: boolean) => (
+    <div className="space-y-4 rounded-2xl border border-beige-100 bg-white p-4">
+      <h3 className="text-sm font-semibold text-charcoal">Prescription Details</h3>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {(["Right Eye (OD)", "Left Eye (OS)"] as const).map((eye) => (
+          <div key={eye} className="space-y-2">
+            <p className="text-xs font-semibold text-charcoal">{eye}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {["SPH", "CYL", "AXIS", ...(includeAdd ? ["ADD"] : [])].map((field) => {
+                const key = `${eye}-${field}`;
+                return <label key={field} className="text-[11px] text-charcoal/55">{field}<input value={selection.prescriptionValues?.[key] ?? ""} onChange={(event) => update({ ...selection, prescriptionValues: { ...(selection.prescriptionValues ?? {}), [key]: event.target.value } })} className="mt-1 w-full rounded-xl border border-beige-100 px-3 py-2 text-sm text-charcoal outline-none focus:border-saffron" /></label>;
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+      {renderChoiceGroup("PD", visionOptions.pdTypes, selection.pdType, (value) => update({ ...selection, pdType: value }))}
+      <label className="block text-[11px] text-charcoal/55">PD value<input value={selection.pdValue ?? ""} onChange={(event) => update({ ...selection, pdValue: event.target.value })} className="mt-1 w-full rounded-xl border border-beige-100 px-3 py-2 text-sm text-charcoal outline-none focus:border-saffron" placeholder="Enter PD" /></label>
+    </div>
+  );
+
+  const renderCoatings = () => (
+    <div>
+      <h3 className="text-sm font-semibold text-charcoal">Lens Coatings</h3>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {visionOptions.lensCoatings.map((coating) => {
+          const checked = selection.lensCoatings?.includes(coating) ?? false;
+          return <label key={coating} className="flex cursor-pointer items-center gap-3 rounded-2xl border border-beige-100 bg-white p-4 text-sm"><input type="checkbox" checked={checked} onChange={() => update({ ...selection, lensCoatings: checked ? (selection.lensCoatings ?? []).filter((item) => item !== coating) : [...(selection.lensCoatings ?? []), coating] })} className="h-4 w-4 accent-orange-500" />{coating}</label>;
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <section className="space-y-5 border-t border-beige-100 pt-6" aria-labelledby="options-more-heading">
       <div>
@@ -171,7 +261,7 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
         <div className="space-y-5">
           <div>
             <h3 className="text-sm font-semibold text-charcoal">Select Your Vision Type</h3>
-            <div className="mt-3 grid grid-cols-2 gap-3">
+            <div className="mt-3 grid grid-cols-3 gap-3">
               {configuration.visionTypes.map((item) => (
                 <button
                   key={item.id}
@@ -184,7 +274,7 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
                   </div>
                   <div className="p-3">
                     <p className="text-sm font-semibold text-charcoal">{item.name}</p>
-                    {item.description && <p className="mt-1 text-xs leading-5 text-charcoal/55">{item.description}</p>}
+                    {/* {item.description && <p className="mt-1 text-xs leading-5 text-charcoal/55">{item.description}</p>} */}
                   </div>
                 </button>
               ))}
@@ -195,6 +285,46 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
             <div>
               <h3 className="text-sm font-semibold text-charcoal">Select Lenses Type</h3>
               <div className="mt-3 grid gap-3">{vision.lensOptions.map((item) => renderOption(item, selection.lensType === item.id, () => update({ ...selection, purchaseType: "with-lenses", lensType: item.id })))}</div>
+            </div>
+          )}
+
+          {vision?.id === "zero-power" && (
+            <div className="space-y-5">
+              {renderChoiceGroup("Lens Power", visionOptions.zeroPowerOptions, selection.prescriptionType, (value) => update({ ...selection, prescriptionType: value }))}
+              {renderChoiceGroup("Lens Material", visionOptions.lensMaterials, selection.lensMaterial, (value) => update({ ...selection, lensMaterial: value }))}
+              {renderCoatings()}
+              <p className="text-xs text-charcoal/55">No prescription required for Zero Power.</p>
+            </div>
+          )}
+
+          {vision?.id === "single-vision" && (
+            <div className="space-y-5">
+              {renderChoiceGroup("Prescription Type", visionOptions.prescriptionTypes, selection.prescriptionType, (value) => update({ ...selection, prescriptionType: value }))}
+              {renderPrescriptionFields(false)}
+              {renderChoiceGroup("Lens Material", visionOptions.lensMaterials, selection.lensMaterial, (value) => update({ ...selection, lensMaterial: value }))}
+              {renderCoatings()}
+            </div>
+          )}
+
+          {vision?.id === "progressive" && (
+            <div className="space-y-5">
+              {renderChoiceGroup("Progressive Lens Design", visionOptions.progressiveDesigns, selection.progressiveDesign, (value) => update({ ...selection, progressiveDesign: value }))}
+              {renderPrescriptionFields(true)}
+              <div className="grid gap-3 sm:grid-cols-2">
+                {visionOptions.progressiveMeasurements.map((measurement) => { const key = measurement.toLowerCase().replace(/[^a-z0-9]+/g, "-"); return <label key={measurement} className="block text-[11px] text-charcoal/55">{measurement}<input value={selection.prescriptionValues?.[key] ?? ""} onChange={(event) => update({ ...selection, prescriptionValues: { ...(selection.prescriptionValues ?? {}), [key]: event.target.value } })} className="mt-1 w-full rounded-xl border border-beige-100 px-3 py-2 text-sm text-charcoal outline-none focus:border-saffron" /></label>; })}
+              </div>
+              {renderCoatings()}
+            </div>
+          )}
+
+          {vision?.id === "photochromic" && (
+            <div className="space-y-5">
+              {renderChoiceGroup("Choose Vision Type", visionOptions.photochromicVisionTypes, selection.photochromicVisionType, (value) => update({ ...selection, photochromicVisionType: value }))}
+              {renderChoiceGroup("Photochromic Options", visionOptions.photochromicTypes, selection.photochromicType, (value) => update({ ...selection, photochromicType: value }))}
+              {selection.photochromicVisionType === "Single Vision" && renderPrescriptionFields(false)}
+              {selection.photochromicVisionType === "Progressive" && renderPrescriptionFields(true)}
+              {(selection.photochromicVisionType === "Single Vision" || selection.photochromicVisionType === "Progressive") && renderCoatings()}
+              {selection.photochromicVisionType === "Zero Power" && <p className="text-xs text-charcoal/55">No prescription required for Zero Power.</p>}
             </div>
           )}
 

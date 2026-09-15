@@ -9,7 +9,7 @@ import SearchModal from "@/components/SearchModal";
 import MobileMenu from "@/components/MobileMenu";
 import CartDrawer from "@/components/CartDrawer";
 import { getStoredProducts, hydrateProducts, defaultProducts as initialProducts } from "@/data/products";
-import { getSiteContent, hydrateSiteContent } from "@/lib/site-content";
+import { getCategoryProductIds, getSiteContent, hydrateSiteContent } from "@/lib/site-content";
 import { Product } from "@/types/product";
 import { SlidersHorizontal, ChevronDown, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
@@ -60,7 +60,9 @@ function SunglassesContent() {
 
   useEffect(() => {
     // Separate assigned and other products
-    const assignedIds = siteContent?.sunglassesProductIds ?? [];
+    const assignedIds = siteContent
+      ? getCategoryProductIds(siteContent, "cat-sunglasses", "Sunglasses")
+      : [];
     const assignedProducts = allProductsList.filter(p => assignedIds.includes(p.id));
     let otherProducts = allProductsList.filter(p => !assignedIds.includes(p.id));
 

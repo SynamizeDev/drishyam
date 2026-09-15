@@ -28,6 +28,17 @@ function updateAt<T>(items: T[], index: number, value: T) {
   return items.map((item, itemIndex) => itemIndex === index ? value : item);
 }
 
+type VisionOptionListKey =
+  | "zeroPowerOptions"
+  | "prescriptionTypes"
+  | "lensMaterials"
+  | "lensCoatings"
+  | "pdTypes"
+  | "progressiveDesigns"
+  | "progressiveMeasurements"
+  | "photochromicVisionTypes"
+  | "photochromicTypes";
+
 export default function LensConfigurationEditor({ value, onChange, fieldClass }: LensConfigurationEditorProps) {
   const updateVision = (index: number, patch: Partial<VisionTypeOption>) => {
     onChange({ ...value, visionTypes: updateAt(value.visionTypes, index, { ...value.visionTypes[index], ...patch }) });
@@ -42,6 +53,31 @@ export default function LensConfigurationEditor({ value, onChange, fieldClass }:
     const vision = value.visionTypes[visionIndex];
     const corridor = vision.corridors?.[corridorIndex] ?? emptyCorridor();
     updateVision(visionIndex, { corridors: updateAt(vision.corridors ?? [], corridorIndex, { ...corridor, ...patch }) });
+  };
+
+  const updateOptionList = (key: VisionOptionListKey, values: string[]) => {
+    onChange({ ...value, [key]: values });
+  };
+
+  const renderOptionList = (key: VisionOptionListKey, label: string, placeholder: string) => {
+    const values = value[key] ?? [];
+    return (
+      <div className="rounded-xl border border-[#f1e8db] bg-[#fffaf5] p-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold text-[#111111]">{label}</p>
+          <button type="button" onClick={() => updateOptionList(key, [...values, ""])} className="inline-flex items-center gap-1 text-xs font-semibold text-[#a55d00]"><Plus className="h-3.5 w-3.5" />Add</button>
+        </div>
+        <div className="mt-2 space-y-2">
+          {values.map((item, index) => (
+            <div key={`${key}-${index}`} className="flex items-center gap-2">
+              <input value={item} onChange={(event) => updateOptionList(key, updateAt(values, index, event.target.value))} placeholder={placeholder} className={fieldClass} />
+              <button type="button" onClick={() => updateOptionList(key, values.filter((_, itemIndex) => itemIndex !== index))} className="flex h-10 w-10 shrink-0 items-center justify-center text-red-600" aria-label={`Delete ${label} option`}><Trash2 className="h-4 w-4" /></button>
+            </div>
+          ))}
+          {values.length === 0 && <p className="text-xs text-[#111111]/45">No custom options. The customer page will use its default options.</p>}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -103,6 +139,22 @@ export default function LensConfigurationEditor({ value, onChange, fieldClass }:
       </div>
 
       <button type="button" onClick={() => onChange({ ...value, visionTypes: [...value.visionTypes, emptyVision()] })} className="inline-flex items-center gap-2 rounded-xl bg-[#111111] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-white"><Plus className="h-4 w-4" />Add vision type</button>
+
+      <div className="rounded-2xl border border-[#eadcc6] bg-white p-4">
+        <p className="text-xs font-semibold text-[#111111]">Vision type detail options</p>
+        <p className="mt-1 text-xs text-[#111111]/50">These lists appear after a customer selects a vision type.</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {renderOptionList("zeroPowerOptions", "Zero Power choices", "e.g. No Prescription / 0 Power")}
+          {renderOptionList("prescriptionTypes", "Prescription types", "e.g. Distance")}
+          {renderOptionList("lensMaterials", "Lens materials", "e.g. Polycarbonate")}
+          {renderOptionList("lensCoatings", "Lens coatings", "e.g. Anti-Glare")}
+          {renderOptionList("pdTypes", "PD types", "e.g. Single PD")}
+          {renderOptionList("progressiveDesigns", "Progressive designs", "e.g. Premium Progressive")}
+          {renderOptionList("progressiveMeasurements", "Progressive measurements", "e.g. Fitting Height")}
+          {renderOptionList("photochromicVisionTypes", "Photochromic vision types", "e.g. Single Vision")}
+          {renderOptionList("photochromicTypes", "Photochromic colors", "e.g. Grey")}
+        </div>
+      </div>
 
       <div className="rounded-2xl border border-[#eadcc6] bg-white p-4">
         <p className="text-xs font-semibold text-[#111111]">Additional paid options</p>

@@ -31,6 +31,15 @@ export interface ProductLensConfiguration {
   enabled: boolean;
   visionTypes: VisionTypeOption[];
   additionalOptions?: LensOption[];
+  zeroPowerOptions?: string[];
+  prescriptionTypes?: string[];
+  lensMaterials?: string[];
+  lensCoatings?: string[];
+  pdTypes?: string[];
+  progressiveDesigns?: string[];
+  progressiveMeasurements?: string[];
+  photochromicVisionTypes?: string[];
+  photochromicTypes?: string[];
   prescription?: {
     enabled: boolean;
     required?: boolean;
@@ -45,6 +54,15 @@ export interface ProductConfigurationSelection {
   lensType?: string;
   corridor?: string;
   additionalOptions?: string[];
+  prescriptionType?: string;
+  prescriptionValues?: Record<string, string>;
+  pdType?: string;
+  pdValue?: string;
+  lensMaterial?: string;
+  lensCoatings?: string[];
+  progressiveDesign?: string;
+  photochromicVisionType?: string;
+  photochromicType?: string;
   prescription?: {
     name: string;
     type: string;
