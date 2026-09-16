@@ -10,7 +10,12 @@ export async function uploadPrescription(file: File, product: Product): Promise<
     .from("prescriptions")
     .upload(storagePath, file, { contentType: file.type || "application/octet-stream", upsert: false });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    if (uploadError.message.toLowerCase().includes("bucket not found")) {
+      throw new Error("Prescription uploads are not enabled yet. Run supabase/migrations/20260916000000_prescription_uploads.sql in your Supabase SQL Editor.");
+    }
+    throw uploadError;
+  }
 
   const { data } = supabase.storage.from("prescriptions").getPublicUrl(storagePath);
   const submission: PrescriptionSubmission = {

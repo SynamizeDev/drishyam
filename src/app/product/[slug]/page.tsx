@@ -360,7 +360,8 @@ export default function ProductDetailPage({ params }: PageProps) {
             </div>
           </div>
         </section>
-        <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="bg-white">
+                                    <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
   {/* Back to Shop */}
   <div className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-charcoal/50">
     <Link
@@ -568,148 +569,10 @@ export default function ProductDetailPage({ params }: PageProps) {
     </div>
   </div>
 </section>
+        </div>
 
-        {/* <section className="border-y border-beige-100 bg-beige-50/30 py-16">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-[28px] border border-beige-100 bg-white p-5 sm:p-7">
-                <div className="mb-6 flex justify-center border-b border-beige-100 text-sm font-semibold uppercase tracking-[0.2em] text-charcoal/50">
-                  {[
-                    { id: "details", label: "Overview" },
-                    { id: "materials", label: "Craft" },
-                    { id: "shipping", label: "Shipping" },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() =>
-                        setActiveTab(
-                          tab.id as
-                            | "details"
-                            | "materials"
-                            | "shipping"
-                        )
-                      }
-                      className={`px-5 py-3 transition ${
-                        activeTab === tab.id
-                          ? "border-b-2 border-charcoal text-charcoal"
-                          : "hover:text-charcoal"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
 
-                <div className="min-h-[160px] text-base leading-8 text-charcoal/75">
-                  {activeTab === "details" && (
-                    <div className="space-y-4">
-                      <p>{product.description}</p>
-
-                      <ul className="space-y-2 pl-5 text-base text-charcoal/70">
-                        {product.details.map((detail, idx) => (
-                          <li key={idx} className="list-disc">
-                            {detail}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {activeTab === "materials" && (
-                    <div className="space-y-4">
-                      <p className="font-semibold text-charcoal">
-                        Handcrafted in small batches
-                      </p>
-
-                      <p>
-                        Built with{" "}
-                        {product.material.toLowerCase()} and
-                        precision-finished details for a refined,
-                        durable finish that feels elevated from the very
-                        first wear.
-                      </p>
-
-                      <p>
-                        The shape, bridge, and temple balance are tuned to
-                        deliver a confident fit whether you are shopping
-                        for everyday use or a leading design statement.
-                      </p>
-                    </div>
-                  )}
-
-                  {activeTab === "shipping" && (
-                    <div className="space-y-4">
-                      <p>
-                        We ship fast and responsibly across the world.
-                      </p>
-
-                      <ul className="space-y-2 pl-5 text-base text-charcoal/70">
-                        <li className="list-disc">
-                          Domestic: 2&ndash;4 business days.
-                        </li>
-
-                        <li className="list-disc">
-                          International: 4&ndash;7 business days.
-                        </li>
-
-                        <li className="list-disc">
-                          Prescription pairs: 3&ndash;5 business days extra.
-                        </li>
-                      </ul>
-
-                      <p>
-                        Free shipping and easy returns are included with
-                        every order.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-[28px] border border-beige-100 bg-[#171717] p-5 text-white sm:p-6">
-                <div className="mb-4 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-[#f7dca8]">
-                  <Check className="h-4 w-4" />
-                  Why people love it
-                </div>
-
-                <div className="space-y-4 text-sm text-white/75">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <div className="font-semibold text-white">
-                      Made for everyday style
-                    </div>
-
-                    <p className="mt-1">
-                      A strong silhouette with enough polish to move from
-                      desk to dinner.
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <div className="font-semibold text-white">
-                      Comfort-first engineering
-                    </div>
-
-                    <p className="mt-1">
-                      Balanced temples and lightweight construction reduce
-                      pressure after long wear.
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <div className="font-semibold text-white">
-                      Premium finish
-                    </div>
-
-                    <p className="mt-1">
-                      Crafted details and color depth that feel luxury
-                      without being loud.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section> */}
+    
 
         {recommendations.length > 0 && (
           <section className="bg-white py-20">
