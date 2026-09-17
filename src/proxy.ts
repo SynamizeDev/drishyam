@@ -12,9 +12,10 @@ export function proxy(request: NextRequest) {
   const host = hostname.split(":")[0].toLowerCase();
 
   // Check if requesting via the dedicated admin subdomain
-  // Exact production hostname: admin.drishyamopticals.in (and admin.localhost for local dev)
+  // Exact production hostnames: admin.drishyamopticals.in & www.admin.drishyamopticals.in (and admin.localhost for local dev)
   const isAdminSubdomain =
     host === "admin.drishyamopticals.in" ||
+    host === "www.admin.drishyamopticals.in" ||
     host === "admin.localhost";
 
   if (isAdminSubdomain) {
