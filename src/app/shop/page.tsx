@@ -87,7 +87,7 @@ function ShopContent() {
 
     // Filter by Gender
     if (filters.gender) {
-      result = result.filter((p) => p.gender === filters.gender || p.gender === "Unisex");
+      result = result.filter((p) => p.gender === filters.gender);
     }
 
     // Filter by Shape

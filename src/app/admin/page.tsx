@@ -145,6 +145,8 @@ const defaultNewProduct = {
   material: "Acetate" as Product["material"],
   size: "Medium" as Product["size"],
   prescription: true,
+  isBestSeller: false,
+  isNew: false,
 };
 
 const emptyLensConfiguration = (): ProductLensConfiguration => ({
@@ -642,8 +644,8 @@ export default function AdminPage() {
       description: newProduct.description.trim() || "Quality product from Drishyam Optical.",
       details: ["Added from admin dashboard", "Ready for sale"],
       dimensions: "50-20-145",
-      isBestSeller: false,
-      isNew: true,
+      isBestSeller: newProduct.isBestSeller,
+      isNew: newProduct.isNew,
       lensConfiguration: newLensConfiguration.visionTypes.length > 0 ? newLensConfiguration : undefined,
     };
     const updated = [...productList, product];
@@ -1378,6 +1380,30 @@ export default function AdminPage() {
                             {["Men", "Women", "Kids", "Unisex"].map((g) => <option key={g}>{g}</option>)}
                           </select>
                         </label>
+                        <div className="sm:col-span-2 rounded-xl border border-[#eadcc6] bg-[#fffaf5] p-3">
+                          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/60">Header Filters</p>
+                          <p className="mt-1 text-xs text-[#111111]/45">Gender and category select Men, Women, Kids, Eyeglasses, and Sunglasses automatically.</p>
+                          <div className="mt-3 flex flex-wrap gap-4">
+                            <label className="flex items-center gap-2 text-sm text-[#111111]/75">
+                              <input
+                                type="checkbox"
+                                checked={newProduct.isNew}
+                                onChange={(e) => setNewProduct((p) => ({ ...p, isNew: e.target.checked }))}
+                                className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]"
+                              />
+                              New Arrivals
+                            </label>
+                            <label className="flex items-center gap-2 text-sm text-[#111111]/75">
+                              <input
+                                type="checkbox"
+                                checked={newProduct.isBestSeller}
+                                onChange={(e) => setNewProduct((p) => ({ ...p, isBestSeller: e.target.checked }))}
+                                className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]"
+                              />
+                              Best Sellers
+                            </label>
+                          </div>
+                        </div>
                         <label className="sm:col-span-2 block">
                           <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Description</span>
                           <textarea
@@ -1533,7 +1559,10 @@ export default function AdminPage() {
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">URL slug</span><input value={editingProductDraft.slug} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, slug: event.target.value })} className={fieldClass} /></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Price (₹)</span><input type="number" min="0" value={editingProductDraft.price} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, price: Number(event.target.value) || 0 })} className={fieldClass} /></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Category</span><select value={editingProductDraft.category} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, category: event.target.value })} className={fieldClass}>{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Gender</span><select value={editingProductDraft.gender} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, gender: event.target.value as Product["gender"] })} className={fieldClass}>{["Men", "Women", "Kids", "Unisex"].map((gender) => <option key={gender}>{gender}</option>)}</select></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Shape</span><select value={editingProductDraft.shape} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, shape: event.target.value })} className={fieldClass}>{["Oval", "Round", "Square", "Heart", "Diamond", "Rectangle", "Aviator", "Geometric", "Cat-Eye"].map((shape) => <option key={shape}>{shape}</option>)}</select></label>
+                                  <label className="flex items-center gap-2 text-sm text-[#111111]/75"><input type="checkbox" checked={Boolean(editingProductDraft.isNew)} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, isNew: event.target.checked })} className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]" /> New Arrivals</label>
+                                  <label className="flex items-center gap-2 text-sm text-[#111111]/75"><input type="checkbox" checked={Boolean(editingProductDraft.isBestSeller)} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, isBestSeller: event.target.checked })} className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]" /> Best Sellers</label>
                                   <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Product photo URLs (comma separated)</span><input value={editingProductDraft.images.map((image) => typeof image === "string" ? image : image.src).join(",")} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, images: event.target.value.split(",").map((image) => image.trim()).filter(Boolean) })} className={fieldClass} /></label>
                                   <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Description</span><textarea value={editingProductDraft.description} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, description: event.target.value })} rows={3} className={`${fieldClass} resize-y`} /></label>
                                 </div>
