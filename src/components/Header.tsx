@@ -107,7 +107,7 @@ export default function Header() {
             </div>
             <nav className="hidden items-center space-x-7 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65 lg:flex">
               {navItems.map((item) => <Link key={item.name} href={item.href} className="transition-colors hover:text-[#f2c66d]">{item.name}</Link>)}
-              <Link href="/admin" className="font-bold text-[#f2c66d] transition-colors hover:text-white">Admin</Link>
+              {/* <Link href="/admin" className="font-bold text-[#f2c66d] transition-colors hover:text-white">Admin</Link> */}
             </nav>
             <div className="flex items-center space-x-1 sm:space-x-3">
               <button onClick={() => setSearchOpen(true)} className="rounded-full p-2 text-white/75 transition-colors hover:bg-white/10 hover:text-white" aria-label="Search"><Search className="h-4.5 w-4.5" /></button>
