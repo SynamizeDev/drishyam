@@ -98,22 +98,22 @@ export default function Header() {
     </motion.div>
   </div>
 </div>
-      <header className={`fixed left-0 right-0 top-0 z-40 w-full border-b border-white/10 bg-[#151513]/95 text-white backdrop-blur-xl transition-all duration-300 ${isScrolled ? "py-2.5 shadow-[0_14px_35px_rgba(0,0,0,0.28)]" : "py-1 lg:py-2"}`}>
+      <header className={`fixed left-0 right-0 top-0 z-40 w-full border-b border-black/10 bg-white/95 text-black backdrop-blur-xl transition-all duration-300 ${isScrolled ? "py-2.5 shadow-[0_14px_35px_rgba(0,0,0,0.12)]" : "py-1 lg:py-2"}`}>
         <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <button onClick={() => setMobileMenuOpen(true)} className="-ml-2 rounded-full p-2 text-white/80 transition-colors hover:bg-white/10 hover:text-white lg:hidden" aria-label="Open menu"><Menu className="h-5 w-5" /></button>
-              <BrandLogo variant="full" size="md" theme="dark" href="/" />
+              <button onClick={() => setMobileMenuOpen(true)} className="-ml-2 rounded-full p-2 text-black/75 transition-colors hover:bg-black/5 hover:text-black lg:hidden" aria-label="Open menu"><Menu className="h-5 w-5" /></button>
+              <BrandLogo variant="full" size="md" theme="light" href="/" />
             </div>
-            <nav className="hidden items-center space-x-7 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65 lg:flex">
-              {navItems.map((item) => <Link key={item.name} href={item.href} className="transition-colors hover:text-[#f2c66d]">{item.name}</Link>)}
+            <nav className="hidden items-center space-x-7 text-[11px] font-semibold uppercase tracking-[0.14em] text-black/65 lg:flex">
+              {navItems.map((item) => <Link key={item.name} href={item.href} className="transition-colors hover:text-[#b7791f]">{item.name}</Link>)}
               {/* <Link href="/admin" className="font-bold text-[#f2c66d] transition-colors hover:text-white">Admin</Link> */}
             </nav>
             <div className="flex items-center space-x-1 sm:space-x-3">
-              <button onClick={() => setSearchOpen(true)} className="rounded-full p-2 text-white/75 transition-colors hover:bg-white/10 hover:text-white" aria-label="Search"><Search className="h-4.5 w-4.5" /></button>
-              <button type="button" onClick={() => setOnboardingOpen(true)} className="hidden rounded-full p-2 text-white/75 transition-colors hover:bg-white/10 hover:text-white md:block" aria-label="Open profile onboarding"><User className="h-4.5 w-4.5" /></button>
-              <Link href="/shop?wishlist=true" className="relative hidden rounded-full p-2 text-white/75 transition-colors hover:bg-white/10 hover:text-white md:block" aria-label="Wishlist"><Heart className={`h-4.5 w-4.5 ${wishlist.length > 0 ? "fill-red-500 text-red-500" : ""}`} /></Link>
-              <button onClick={() => setCartOpen(true)} className="relative rounded-full p-2 text-white/75 transition-colors hover:bg-white/10 hover:text-white" aria-label="Shopping bag"><ShoppingBag className="h-4.5 w-4.5" />{cartCount > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#d7a744] text-[10px] font-bold text-[#151513]">{cartCount}</span>}</button>
+              <button onClick={() => setSearchOpen(true)} className="rounded-full p-2 text-black/75 transition-colors hover:bg-black/5 hover:text-black" aria-label="Search"><Search className="h-4.5 w-4.5" /></button>
+              <button type="button" onClick={() => setOnboardingOpen(true)} className="hidden rounded-full p-2 text-black/75 transition-colors hover:bg-black/5 hover:text-black md:block" aria-label="Open profile onboarding"><User className="h-4.5 w-4.5" /></button>
+              <Link href="/shop?wishlist=true" className="relative hidden rounded-full p-2 text-black/75 transition-colors hover:bg-black/5 hover:text-black md:block" aria-label="Wishlist"><Heart className={`h-4.5 w-4.5 ${wishlist.length > 0 ? "fill-red-500 text-red-500" : ""}`} /></Link>
+              <button onClick={() => setCartOpen(true)} className="relative rounded-full p-2 text-black/75 transition-colors hover:bg-black/5 hover:text-black" aria-label="Shopping bag"><ShoppingBag className="h-4.5 w-4.5" />{cartCount > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#d7a744] text-[10px] font-bold text-black">{cartCount}</span>}</button>
             </div>
           </div>
         </div>
