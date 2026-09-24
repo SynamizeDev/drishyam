@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Star, ChevronLeft, ChevronRight, Quote, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DEFAULT_SITE_CONTENT,
   getSiteContent,
   hydrateSiteContent,
+  saveSiteContent,
   TestimonialItem,
+  getReviewStatus,
 } from "@/lib/site-content";
 
 export default function Testimonials() {
@@ -17,12 +19,16 @@ export default function Testimonials() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [direction, setDirection] = useState(1);
+  const [reviewForm, setReviewForm] = useState({ name: "", role: "", rating: 5, text: "" });
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+  const hasSubmittedReview = useRef(false);
 
   useEffect(() => {
     const sync = () => {
       const content = getSiteContent();
-      const nextList =
-        content.testimonials ?? DEFAULT_SITE_CONTENT.testimonials;
+      const nextList = (content.testimonials ?? DEFAULT_SITE_CONTENT.testimonials)
+        .filter((review) => getReviewStatus(review) === "approved");
 
       setList(nextList);
       setActiveIdx((prev) =>
@@ -33,8 +39,9 @@ export default function Testimonials() {
     sync();
 
     void hydrateSiteContent().then((content) => {
-      const nextList =
-        content.testimonials ?? DEFAULT_SITE_CONTENT.testimonials;
+      if (hasSubmittedReview.current) return;
+      const nextList = (content.testimonials ?? DEFAULT_SITE_CONTENT.testimonials)
+        .filter((review) => getReviewStatus(review) === "approved");
 
       setList(nextList);
       setActiveIdx((prev) =>
@@ -85,6 +92,44 @@ export default function Testimonials() {
     setActiveIdx((current) =>
       current === list.length - 1 ? 0 : current + 1
     );
+  };
+
+  const submitReview = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const name = reviewForm.name.trim();
+    const text = reviewForm.text.trim();
+
+    if (!name || text.length < 10) {
+      setReviewError("Please add your name and a message of at least 10 characters.");
+      return;
+    }
+
+    const newReview: TestimonialItem = {
+      id: `review-${Date.now()}`,
+      name,
+      role: reviewForm.role.trim() || "Drishyam Optical customer",
+      rating: Math.max(1, Math.min(5, Math.round(Number(reviewForm.rating) || 5))),
+      text,
+      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop",
+      status: "pending",
+    };
+
+    const content = getSiteContent();
+    const nextTestimonials = [...(content.testimonials ?? []), newReview];
+
+    try {
+      hasSubmittedReview.current = true;
+      await saveSiteContent({ ...content, testimonials: nextTestimonials });
+      const approvedTestimonials = nextTestimonials.filter((review) => getReviewStatus(review) === "approved");
+      setList(approvedTestimonials);
+      setActiveIdx(Math.max(0, approvedTestimonials.length - 1));
+      setReviewForm({ name: "", role: "", rating: 5, text: "" });
+      setReviewError("");
+      setReviewSubmitted(true);
+    } catch {
+      hasSubmittedReview.current = false;
+      setReviewError("We could not send your review right now. Please try again.");
+    }
   };
 
   return (
@@ -192,18 +237,11 @@ export default function Testimonials() {
                 <div className="relative">
                   {/* Rating */}
                   <div className="mb-8 flex items-center gap-3">
-                    <div className="flex gap-1">
-                      {[
-                        ...Array(
-                          Math.max(
-                            1,
-                            Math.min(5, currentItem.rating || 5)
-                          )
-                        ),
-                      ].map((_, i) => (
+                    <div className="flex gap-1" aria-label={`${currentItem.rating || 5} out of 5 stars`}>
+                      {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                           key={i}
-                          className="h-4 w-4 fill-[#f59e0b] text-[#f59e0b]"
+                          className={`h-4 w-4 ${i < Math.max(1, Math.min(5, Math.round(Number(currentItem.rating) || 5))) ? "fill-[#f59e0b] text-[#f59e0b]" : "text-charcoal/15"}`}
                         />
                       ))}
                     </div>
@@ -305,6 +343,53 @@ export default function Testimonials() {
               Trusted Customer Experiences
             </span>
           </div>
+        </div>
+
+        <div className="mt-12 rounded-[28px] border border-[#eadcc6] bg-white p-6 shadow-[0_18px_50px_rgba(70,50,25,0.07)] sm:p-8">
+          {reviewSubmitted ? (
+            <div className="flex flex-col items-center justify-center py-4 text-center">
+              <div className="mb-3 flex gap-1 text-[#f59e0b]">
+                {Array.from({ length: 5 }).map((_, index) => <Star key={index} className="h-5 w-5 fill-current" />)}
+              </div>
+              <h3 className="text-2xl font-semibold text-charcoal">Thank you for sharing.</h3>
+              <p className="mt-2 text-sm text-charcoal/55">Your review was sent for approval and will appear after our team reviews it.</p>
+              <button type="button" onClick={() => setReviewSubmitted(false)} className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-[#b87500] hover:text-charcoal">
+                Add another review
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={submitReview} className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+              <div>
+                <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-[#b87500]">Your experience</span>
+                <h3 className="text-2xl font-semibold text-charcoal sm:text-3xl">Tell us what you think.</h3>
+                <p className="mt-2 max-w-md text-sm leading-6 text-charcoal/55">Your honest review helps others choose eyewear with confidence.</p>
+                <div className="mt-5 flex items-center gap-1" aria-label="Choose a rating">
+                  {Array.from({ length: 5 }).map((_, index) => {
+                    const rating = index + 1;
+                    return (
+                      <button key={rating} type="button" onClick={() => setReviewForm((current) => ({ ...current, rating }))} aria-label={`${rating} star${rating === 1 ? "" : "s"}`} className="rounded-md p-1 transition-transform hover:scale-110">
+                        <Star className={`h-6 w-6 ${rating <= reviewForm.rating ? "fill-[#f59e0b] text-[#f59e0b]" : "text-charcoal/20"}`} />
+                      </button>
+                    );
+                  })}
+                  <span className="ml-2 text-xs font-semibold text-charcoal/45">{reviewForm.rating}/5</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input value={reviewForm.name} onChange={(event) => setReviewForm((current) => ({ ...current, name: event.target.value }))} placeholder="Your name" aria-label="Your name" className="w-full rounded-2xl border border-[#eadcc6] bg-[#fffaf5] px-4 py-3 text-sm text-charcoal outline-none focus:border-[#f59e0b]" />
+                  <input value={reviewForm.role} onChange={(event) => setReviewForm((current) => ({ ...current, role: event.target.value }))} placeholder="City or profession (optional)" aria-label="City or profession" className="w-full rounded-2xl border border-[#eadcc6] bg-[#fffaf5] px-4 py-3 text-sm text-charcoal outline-none focus:border-[#f59e0b]" />
+                </div>
+                <textarea value={reviewForm.text} onChange={(event) => setReviewForm((current) => ({ ...current, text: event.target.value }))} placeholder="Share your experience with us..." aria-label="Your review" rows={4} className="w-full resize-none rounded-2xl border border-[#eadcc6] bg-[#fffaf5] px-4 py-3 text-sm leading-6 text-charcoal outline-none focus:border-[#f59e0b]" />
+                {reviewError && <p className="text-xs text-red-600">{reviewError}</p>}
+                <button type="submit" className="inline-flex items-center gap-2 rounded-full bg-[#111111] px-5 py-3 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition hover:-translate-y-0.5 hover:bg-[#c18b3c]">
+                  Submit review
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </section>

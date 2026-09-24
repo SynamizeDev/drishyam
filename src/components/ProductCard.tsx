@@ -236,7 +236,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <button
           type="button"
           onClick={() => toggleWishlist(product.id)}
-          className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white/80 text-[#231f1a] shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-110 hover:text-red-500 active:scale-95 sm:right-4 sm:top-4 sm:h-10 sm:w-10"
+          className="absolute right-2 top-2 z-20 flex max-sm:h-6 max-sm:w-6 h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white/80 text-[#231f1a] shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-110 hover:text-red-500 active:scale-95 sm:right-4 sm:top-4 sm:h-10 sm:w-10"
           aria-label="Add to wishlist"
         >
           <Heart

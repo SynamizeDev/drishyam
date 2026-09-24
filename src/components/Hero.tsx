@@ -117,7 +117,7 @@ export default function Hero() {
                 {activeSlide.eyebrow || activeSlide.title}
               </div>
 
-              <h1 className="mt-6 max-sm:text-2xl text-4xl font-semibold uppercase leading-[0.98] text-white sm:text-5xl md:text-6xl">
+              <h1 className="mt-6 max-sm:text-xl text-4xl font-semibold uppercase leading-[0.98] text-white sm:text-5xl md:text-6xl">
                 {siteContent.hero.headline}
               </h1>
 
@@ -132,22 +132,24 @@ export default function Hero() {
               </p> */}
 
               <div className="mt-8 max-sm:mt-2 flex flex-col sm:flex-row gap-2">
-                <Link
-                  href="/shop"
-                  className="btn-primary inline-flex items-center justify-center gap-2 rounded-lg border border-[#d6a354] px-7 py-3.5 text-sm font-bold uppercase tracking-[0.16em] text-white transition-transform duration-200 hover:scale-[1.02] max-sm:text-xs"
-                >
-                  {activeSlide.primaryLabel || "See All Collections"}
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+<div className="flex items-center gap-3 max-sm:gap-2 w-full">
+  <Link
+    href="/shop"
+    className="btn-primary inline-flex  items-center whitespace-nowrap justify-center gap-1.5 rounded-lg border border-[#d6a354] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.1em] text-white transition-transform duration-200 hover:scale-[1.02] sm:w-auto sm:gap-2 sm:px-7 sm:py-3.5 sm:text-sm sm:tracking-[0.16em]"
+  >
+    {activeSlide.primaryLabel || "See All Collections"}
+    <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
+  </Link>
 
-                <button
-                  type="button"
-                  onClick={handleEnquireNow}
-                  className="btn-secondary inline-flex items-center justify-center gap-2 rounded-lg bg-[#d6a354] px-7 py-3.5 text-sm font-bold uppercase tracking-[0.16em] text-[#211f1b] shadow-[0_18px_35px_rgba(193,139,60,0.35)] transition-transform duration-200 hover:scale-[1.02] max-sm:text-xs"
-                >
-                  {activeSlide.secondaryLabel || "Enquire Now"}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+  <button
+    type="button"
+    onClick={handleEnquireNow}
+    className="btn-secondary inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#d6a354] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.1em] text-[#211f1b] shadow-[0_18px_35px_rgba(193,139,60,0.35)] transition-transform duration-200 hover:scale-[1.02] sm:w-auto sm:gap-2 sm:px-7 sm:py-3.5 sm:text-sm sm:tracking-[0.16em]"
+  >
+    {activeSlide.secondaryLabel || "Enquire Now"}
+    <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
+  </button>
+</div>
               </div>
 
               <div className="mt-8 max-sm:mt-3 max-sm:gap-2 flex flex-wrap gap-4 max-sm:text-xs text-sm text-slate-200/90">

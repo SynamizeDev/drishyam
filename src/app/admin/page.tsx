@@ -60,7 +60,9 @@ import {
   type SiteContent,
   type BenefitItem,
   type TestimonialItem,
+  type ReviewStatus,
   type HomeMetric,
+  type HomeCollectionCard,
   addOfflineSale,
 } from "@/lib/site-content";
 import BrandLogo from "@/components/BrandLogo";
@@ -535,16 +537,53 @@ export default function AdminPage() {
       rating: 5,
       text: "Outstanding frame craftsmanship and clear optical fitting. Very satisfied with my purchase!",
       image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop",
+      status: "approved",
     };
     setContent((c) => ({ ...c, testimonials: [...(c.testimonials ?? []), newReview] }));
     setToastMessage("New Review card added. Edit and click Save.");
   };
 
-  const updateTestimonialCard = (index: number, field: keyof TestimonialItem, value: any) => {
+  const updateTestimonialCard = (index: number, field: keyof TestimonialItem, value: string | number | ReviewStatus) => {
     setContent((c) => {
       const testimonials = [...(c.testimonials ?? [])];
       testimonials[index] = { ...testimonials[index], [field]: value };
       return { ...c, testimonials };
+    });
+  };
+
+  const updateReviewStatus = async (index: number, status: ReviewStatus) => {
+    const testimonials = [...(content.testimonials ?? [])];
+    testimonials[index] = { ...testimonials[index], status };
+    const nextContent = { ...content, testimonials };
+    setContent(nextContent);
+
+    try {
+      await saveSiteContent(nextContent);
+      setToastMessage(`Review ${status}.`);
+    } catch {
+      setToastMessage("Review updated locally, but cloud sync failed.");
+    }
+  };
+
+  const deleteCustomerReview = (index: number, name: string) => {
+    setConfirmAction({
+      title: "Delete review?",
+      message: `Permanently delete the review from ${name}?`,
+      confirmLabel: "Delete Review",
+      onConfirm: () => {
+        void (async () => {
+          const testimonials = (content.testimonials ?? []).filter((_, reviewIndex) => reviewIndex !== index);
+          const nextContent = { ...content, testimonials };
+          setContent(nextContent);
+
+          try {
+            await saveSiteContent(nextContent);
+            setToastMessage("Review deleted.");
+          } catch {
+            setToastMessage("Review deleted locally, but cloud sync failed.");
+          }
+        })();
+      },
     });
   };
 
@@ -579,6 +618,32 @@ export default function AdminPage() {
     });
   };
 
+  const updateCollectionCard = (index: number, field: keyof HomeCollectionCard, value: string) => {
+    setContent((c) => {
+      const cards = [...(c.homeCollectionCards ?? [])];
+      cards[index] = { ...cards[index], [field]: value };
+      return { ...c, homeCollectionCards: cards };
+    });
+  };
+
+  const addCollectionCard = () => {
+    const newCard: HomeCollectionCard = {
+      id: `collection-${Date.now()}`,
+      title: "New Collection",
+      image: "https://images.unsplash.com/photo-1577803947579-9f2d05d7f9cf?q=80&w=900&auto=format&fit=crop",
+      href: "/shop",
+    };
+    setContent((c) => ({ ...c, homeCollectionCards: [...(c.homeCollectionCards ?? []), newCard] }));
+    setToastMessage("New collection card added. Edit it and save all cards.");
+  };
+
+  const removeCollectionCard = (index: number) => {
+    setContent((c) => ({
+      ...c,
+      homeCollectionCards: (c.homeCollectionCards ?? []).filter((_, i) => i !== index),
+    }));
+  };
+
   const removeMetricCard = (index: number) => {
     setContent((c) => ({
       ...c,
@@ -594,6 +659,30 @@ export default function AdminPage() {
         ...c.store,
         [field]: value,
       },
+    }));
+  };
+
+  const updateInquiryOption = (index: number, value: string) => {
+    setContent((c) => ({
+      ...c,
+      store: {
+        ...c.store,
+        inquiryOptions: (c.store.inquiryOptions ?? []).map((option, optionIndex) => optionIndex === index ? value : option),
+      },
+    }));
+  };
+
+  const addInquiryOption = () => {
+    setContent((c) => ({
+      ...c,
+      store: { ...c.store, inquiryOptions: [...(c.store.inquiryOptions ?? []), "New Category"] },
+    }));
+  };
+
+  const removeInquiryOption = (index: number) => {
+    setContent((c) => ({
+      ...c,
+      store: { ...c.store, inquiryOptions: (c.store.inquiryOptions ?? []).filter((_, optionIndex) => optionIndex !== index) },
     }));
   };
 
@@ -1653,6 +1742,57 @@ export default function AdminPage() {
             {/* ══ 4. CARDS & CONTENT TAB (ALL DYNAMIC CARDS) ══ */}
             {activeTab === "cards" && (
               <section className="space-y-10">
+                <div className="rounded-[28px] border border-[#eadcc6] bg-white p-5 shadow-[0_20px_55px_rgba(17,17,17,0.04)] sm:p-6">
+                  <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Layers className="h-5 w-5 text-[#f59e0b]" />
+                        <h3 className="text-2xl font-semibold">Shop by Collection Cards</h3>
+                      </div>
+                      <p className="mt-1 max-w-xl text-sm text-[#111111]/50">
+                        These cards appear directly after Shop In Style. Edit the title, image, and destination for each collection.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addCollectionCard}
+                      className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#111111] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#333]"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Card
+                    </button>
+                  </div>
+
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                    {(content.homeCollectionCards ?? []).map((card, i) => (
+                      <div key={card.id || i} className="rounded-[22px] border border-[#f1e8db] bg-[#fffaf5] p-4">
+                        <div className="mb-3 flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a55d00]">Card #{i + 1}</span>
+                          <button type="button" onClick={() => removeCollectionCard(i)} className="p-1 text-red-500 hover:text-red-700" aria-label={`Delete ${card.title}`}>
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          <label className="block">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#111111]/60">Title</span>
+                            <input value={card.title} onChange={(e) => updateCollectionCard(i, "title", e.target.value)} className={fieldClass} />
+                          </label>
+                          <ImageUploader
+                            label="Card Image"
+                            value={card.image}
+                            onChange={(value) => updateCollectionCard(i, "image", value)}
+                            aspectRatio="portrait"
+                          />
+                          <label className="block">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#111111]/60">Destination URL</span>
+                            <input value={card.href} onChange={(e) => updateCollectionCard(i, "href", e.target.value)} placeholder="/shop" className={fieldClass} />
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* ── Section A: Why Drishyam / Benefits Cards ── */}
                 <div className="rounded-[28px] border border-[#eadcc6] bg-white p-5 sm:p-6 shadow-[0_20px_55px_rgba(17,17,17,0.04)]">
                   <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -1879,6 +2019,27 @@ export default function AdminPage() {
                           className={fieldClass}
                         />
                       </label>
+                        <div className="rounded-2xl border border-[#f1e8db] bg-[#fffaf5] p-4">
+                          <div className="mb-3 flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/60">Inquiry product categories</p>
+                              <p className="mt-1 text-xs text-[#111111]/45">These appear as radio buttons in the boutique form.</p>
+                            </div>
+                            <button type="button" onClick={addInquiryOption} className="inline-flex items-center gap-1 rounded-lg bg-[#111111] px-2.5 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
+                              <Plus className="h-3 w-3" /> Add
+                            </button>
+                          </div>
+                          <div className="space-y-2">
+                            {(content.store.inquiryOptions ?? []).map((option, index) => (
+                              <div key={`${option}-${index}`} className="flex items-center gap-2">
+                                <input value={option} onChange={(e) => updateInquiryOption(index, e.target.value)} className={fieldClass} />
+                                <button type="button" onClick={() => removeInquiryOption(index)} className="rounded-lg p-2 text-red-500 hover:bg-red-50" aria-label={`Remove ${option}`}>
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                     </div>
 
                     <div className="space-y-4">
@@ -1974,6 +2135,70 @@ export default function AdminPage() {
             {/* ══ 5. CUSTOMERS TAB ══ */}
             {activeTab === "customers" && (
               <section className="space-y-6">
+                <div className="rounded-[28px] border border-[#eadcc6] bg-white p-5 sm:p-6 shadow-[0_20px_55px_rgba(17,17,17,0.04)]">
+                  <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a55d00]">Customer feedback</p>
+                      <h3 className="mt-1 text-2xl font-semibold">Customer Reviews</h3>
+                      <p className="mt-1 text-sm text-[#111111]/50">Review client submissions before they appear on the website.</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-[0.12em]">
+                      <span className="rounded-full bg-amber-100 px-3 py-1.5 text-amber-800">
+                        {(content.testimonials ?? []).filter((review) => (review.status ?? "approved") === "pending").length} Pending
+                      </span>
+                      <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-emerald-800">
+                        {(content.testimonials ?? []).filter((review) => (review.status ?? "approved") === "approved").length} Approved
+                      </span>
+                    </div>
+                  </div>
+
+                  {(content.testimonials ?? []).length === 0 ? (
+                    <div className="rounded-[22px] border border-dashed border-[#eadcc6] bg-[#fffaf5] p-8 text-center text-sm text-[#111111]/45">
+                      No customer reviews submitted yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {(content.testimonials ?? []).map((review, index) => {
+                        const status = review.status ?? "approved";
+                        return (
+                          <div key={review.id || index} className="flex flex-col gap-4 rounded-2xl border border-[#f1e8db] bg-[#fffaf5] p-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold text-[#111111]">{review.name}</p>
+                                <span className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] ${status === "approved" ? "bg-emerald-100 text-emerald-800" : status === "pending" ? "bg-amber-100 text-amber-800" : "bg-red-100 text-red-700"}`}>
+                                  {status}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs text-[#111111]/55">{review.role} &middot; {review.rating}/5 stars</p>
+                              <p className="mt-2 max-w-3xl text-sm leading-6 text-[#111111]/75">{review.text}</p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2">
+                              <select
+                                value={status}
+                                onChange={(event) => void updateReviewStatus(index, event.target.value as ReviewStatus)}
+                                aria-label={`Moderate review from ${review.name}`}
+                                className="rounded-xl border border-[#eadcc6] bg-white px-3 py-2 text-xs font-semibold outline-none focus:border-[#f59e0b]"
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approve</option>
+                                <option value="rejected">Reject</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => deleteCustomerReview(index, review.name)}
+                                aria-label={`Delete review from ${review.name}`}
+                                className="rounded-xl border border-red-200 bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
                 <div className="rounded-[28px] border border-[#eadcc6] bg-white p-5 sm:p-6 shadow-[0_20px_55px_rgba(17,17,17,0.04)]">
                   <div className="mb-5">
                     <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#a55d00]">Prescription review</p>

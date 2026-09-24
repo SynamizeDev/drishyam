@@ -24,6 +24,7 @@ import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import type { Product } from "@/types/product";
 import OpticalCategories from "@/components/CategoryCard";
 import ShopInStyle from "@/components/ShopInStyle";
+import HomeCollectionCards from "@/components/HomeCollectionCards";
 
 export default function HomePage() {
   const [visibleNewArrivalsCount, setVisibleNewArrivalsCount] = useState(4);
@@ -75,6 +76,7 @@ export default function HomePage() {
         <OpticalCategories />
         <Hero />
         <ShopInStyle />
+        <HomeCollectionCards />
 
         <section className="border-t border-beige-100 bg-white py-16 sm:py-20">
           <div className="px-6 sm:px-6 lg:px-8">

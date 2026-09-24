@@ -6,6 +6,27 @@ function encodeMessage(message: string) {
   return encodeURIComponent(message);
 }
 
+export function makeBoutiqueInquiryUrl(data: {
+  name: string;
+  email: string;
+  phone: string;
+  powerNumber: string;
+  productCategory: string;
+}) {
+  const lines = [
+    "Hello Drishyam Optical,",
+    "I would like to enquire about a product:",
+    "",
+    `Name: ${data.name}`,
+    `Email: ${data.email}`,
+    `Phone: ${data.phone || "Not provided"}`,
+    `Product: ${data.productCategory}`,
+    `Power number: ${data.powerNumber || "Not provided"}`,
+  ];
+
+  return `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeMessage(lines.join("\n"))}`;
+}
+
 export function formatINR(value: number) {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",

@@ -339,7 +339,7 @@ function CategoryCard({
 
       {/* Soft teal glow */}
       <div
-        className={`absolute -right-10 -top-12 h-40 w-40 rounded-full bg-[#16c7c0]/20 blur-2xl transition-all duration-700 ${
+        className={`absolute -right-10 -top-12 h-40 w-40 rounded-full bg-[rgb(86_117_202_/_20%)] blur-2xl transition-all duration-700 ${
           isActive
             ? "scale-125 opacity-100"
             : "opacity-60 group-hover:scale-125"

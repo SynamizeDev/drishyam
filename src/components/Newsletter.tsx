@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CheckCircle2, MapPin, Mail, MessageCircle, Phone, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { submitOnboardingLead } from "@/lib/site-content";
+import { getSiteContent, submitOnboardingLead } from "@/lib/site-content";
+import { makeBoutiqueInquiryUrl } from "@/lib/whatsapp";
 
 type ContactFormErrors = {
   name?: string;
   email?: string;
   phone?: string;
   message?: string;
+  productCategory?: string;
 };
 
 const validateContactField = (field: keyof typeof initialForm, value: string): string => {
@@ -42,12 +44,28 @@ const initialForm = {
   email: "",
   phone: "",
   message: "",
+  powerNumber: "",
+  productCategory: "",
 };
 
 export default function Newsletter() {
   const [formData, setFormData] = useState(initialForm);
+  const [inquiryOptions, setInquiryOptions] = useState<string[]>([]);
   const [errors, setErrors] = useState<ContactFormErrors>({});
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    const sync = () => {
+      setInquiryOptions(getSiteContent().store.inquiryOptions ?? []);
+    };
+    sync();
+    window.addEventListener("storage", sync);
+    window.addEventListener("drishyam:content-update", sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("drishyam:content-update", sync);
+    };
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -66,6 +84,7 @@ export default function Newsletter() {
       email: validateContactField("email", formData.email),
       phone: validateContactField("phone", formData.phone),
       message: validateContactField("message", formData.message),
+      productCategory: formData.productCategory ? "" : "Please choose a product category.",
     };
 
     setErrors(nextErrors);
@@ -78,7 +97,17 @@ export default function Newsletter() {
       name: formData.name,
       number: formData.phone || "Not provided",
       email: formData.email,
+      powerNumber: formData.powerNumber,
+      productCategory: formData.productCategory,
     });
+
+    window.open(makeBoutiqueInquiryUrl({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      powerNumber: formData.powerNumber,
+      productCategory: formData.productCategory,
+    }), "_blank", "noopener,noreferrer");
 
     setSubmitted(true);
     setFormData(initialForm);
@@ -176,6 +205,42 @@ export default function Newsletter() {
                       className={`w-full rounded-2xl border bg-[#fffaf5] px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/35 focus:outline-none ${errors.email ? "border-red-300 focus:border-red-400" : "border-[#ebdcc7] focus:border-[#f59e0b]"}`}
                     />
                     {errors.email && <p className="mt-2 text-xs text-red-600">{errors.email}</p>}
+                  </label>
+
+                  <div>
+                    <span className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-charcoal/50">
+                      What are you looking for?
+                    </span>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {inquiryOptions.map((option) => (
+                        <label key={option} className={`flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors ${formData.productCategory === option ? "border-[#f59e0b] bg-[#fff7eb]" : "border-[#ebdcc7] bg-[#fffaf5]"}`}>
+                          <input
+                            type="radio"
+                            name="productCategory"
+                            value={option}
+                            checked={formData.productCategory === option}
+                            onChange={handleChange}
+                            className="h-4 w-4 accent-[#f59e0b]"
+                          />
+                          <span className="text-charcoal">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {errors.productCategory && <p className="mt-2 text-xs text-red-600">{errors.productCategory}</p>}
+                  </div>
+
+                  <label className="block">
+                    <span className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-charcoal/50">
+                      Power number <span className="font-normal normal-case tracking-normal text-charcoal/40">(optional)</span>
+                    </span>
+                    <input
+                      type="text"
+                      name="powerNumber"
+                      value={formData.powerNumber}
+                      onChange={handleChange}
+                      placeholder="e.g. Right -2.00, Left -1.50"
+                      className="w-full rounded-2xl border border-[#ebdcc7] bg-[#fffaf5] px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/35 focus:border-[#f59e0b] focus:outline-none"
+                    />
                   </label>
 
                   {/* <label className="block">

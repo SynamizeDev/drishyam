@@ -27,6 +27,13 @@ export interface AdminCategory {
   slug: string;
 }
 
+export interface HomeCollectionCard {
+  id: string;
+  title: string;
+  image: string;
+  href: string;
+}
+
 export interface BenefitItem {
   id: string;
   title: string;
@@ -41,6 +48,13 @@ export interface TestimonialItem {
   rating: number;
   text: string;
   image: string;
+  status?: ReviewStatus;
+}
+
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
+export function getReviewStatus(review: TestimonialItem): ReviewStatus {
+  return review.status ?? "approved";
 }
 
 export interface StoreCardContent {
@@ -52,6 +66,7 @@ export interface StoreCardContent {
   image2: string;
   timings?: string;
   tagline?: string;
+  inquiryOptions?: string[];
 }
 
 export interface OfflineSaleRecord {
@@ -84,6 +99,7 @@ export interface SiteContent {
   benefits: BenefitItem[];
   testimonials: TestimonialItem[];
   categories: AdminCategory[];
+  homeCollectionCards: HomeCollectionCard[];
   featuredProductIds?: string[];
   newArrivalProductIds?: string[];
   shopByStyleProductIds?: string[];
@@ -118,6 +134,8 @@ export interface OnboardingLead {
   number: string;
   email: string;
   createdAt: string;
+  powerNumber?: string;
+  productCategory?: string;
 }
 
 export const DEFAULT_BENEFITS: BenefitItem[] = [
@@ -155,6 +173,7 @@ export const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
     rating: 5,
     text: "The acetate density and frame polishing are exceptional. They feel substantial yet perfectly balanced. Drishyam frames have redefined my everyday profile.",
     image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop",
+    status: "approved",
   },
   {
     id: "review-2",
@@ -163,6 +182,7 @@ export const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
     rating: 5,
     text: "I was skeptical about trying glasses virtually, but the recommendations based on my face shape were spot on. The Avery Classic fits my square facial structure beautifully.",
     image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=300&auto=format&fit=crop",
+    status: "approved",
   },
   {
     id: "review-3",
@@ -171,6 +191,7 @@ export const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
     rating: 5,
     text: "Remarkable clarity in their blue-light lenses. I spend hours under museum gallery lights and in front of screens, and my visual fatigue has dropped drastically.",
     image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop",
+    status: "approved",
   },
 ];
 
@@ -236,10 +257,55 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     image2: "https://images.unsplash.com/photo-1509695507497-903c140c43b0?q=80&w=500&auto=format&fit=crop",
     timings: "Open Mon-Sun: 10:00 AM - 9:30 PM",
     tagline: "Drishyam Optical Boutique",
+    inquiryOptions: ["Sunglasses", "Eyeglasses", "Lenses", "Clip", "Blue Light"],
   },
   benefits: DEFAULT_BENEFITS,
   testimonials: DEFAULT_TESTIMONIALS,
   categories: defaultCategories,
+  homeCollectionCards: [
+    {
+      id: "collection-men",
+      title: "Men",
+      image: "https://images.unsplash.com/photo-1504257432389-52343af06ae3?q=80&w=900&auto=format&fit=crop",
+      href: "/shop?gender=Men",
+    },
+    {
+      id: "collection-women",
+      title: "Women",
+      image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=900&auto=format&fit=crop",
+      href: "/shop?gender=Women",
+    },
+    {
+      id: "collection-kids",
+      title: "Kids",
+      image: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=900&auto=format&fit=crop",
+      href: "/shop?gender=Kids",
+    },
+    {
+      id: "collection-eyeglasses",
+      title: "Eyeglasses",
+      image: "https://images.unsplash.com/photo-1577803645773-f96470509666?q=80&w=900&auto=format&fit=crop",
+      href: "/eyeglasses",
+    },
+    {
+      id: "collection-sunglasses",
+      title: "Sunglasses",
+      image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=900&auto=format&fit=crop",
+      href: "/sunglasses",
+    },
+    {
+      id: "collection-new-arrivals",
+      title: "New Arrivals",
+      image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=900&auto=format&fit=crop",
+      href: "/shop?new=true",
+    },
+    {
+      id: "collection-best-sellers",
+      title: "Best Sellers",
+      image: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?q=80&w=900&auto=format&fit=crop",
+      href: "/shop?best=true",
+    },
+  ],
   featuredProductIds: ["frame-001", "frame-002", "frame-004", "frame-005"],
   newArrivalProductIds: ["frame-003", "frame-006", "frame-007", "frame-010"],
   shopByStyleProductIds: ["frame-001", "frame-003", "frame-005", "frame-008"],
@@ -302,6 +368,9 @@ function mergeContent(saved: Partial<SiteContent>): SiteContent {
     categories: saved.categories?.length
       ? saved.categories
       : DEFAULT_SITE_CONTENT.categories,
+    homeCollectionCards: saved.homeCollectionCards?.length
+      ? saved.homeCollectionCards
+      : DEFAULT_SITE_CONTENT.homeCollectionCards,
     featuredProductIds: saved.featuredProductIds ?? DEFAULT_SITE_CONTENT.featuredProductIds,
     newArrivalProductIds: saved.newArrivalProductIds ?? DEFAULT_SITE_CONTENT.newArrivalProductIds,
     shopByStyleProductIds: saved.shopByStyleProductIds ?? DEFAULT_SITE_CONTENT.shopByStyleProductIds,
@@ -416,7 +485,13 @@ export function saveOnboardingLeads(leads: OnboardingLead[]) {
   notifyOnboardingLeadUpdate();
 }
 
-export function submitOnboardingLead(data: { name: string; number: string; email: string }) {
+export function submitOnboardingLead(data: {
+  name: string;
+  number: string;
+  email: string;
+  powerNumber?: string;
+  productCategory?: string;
+}) {
   const leads = getOnboardingLeads();
   const newLead: OnboardingLead = {
     id: `${Date.now()}`,
