@@ -124,7 +124,7 @@ export default function Newsletter() {
             Contact us
           </span>
           <h2 className=" text-3xl md:text-5xl text-charcoal font-medium">
-            Visit or message our boutique.
+            Visit our store and connect with  us
           </h2>
         </div>
 

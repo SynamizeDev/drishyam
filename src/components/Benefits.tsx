@@ -146,8 +146,9 @@ export default function Benefits() {
 
                 {/* Top row */}
                 <div className="relative z-10 flex items-start justify-between">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#fbbf24]/20 bg-gradient-to-br from-[#f59e0b]/25 to-[#fbbf24]/5 text-[#fbbf24] shadow-[0_10px_30px_rgba(245,158,11,0.08)] transition-all duration-500 group-hover:scale-110 group-hover:border-[#fbbf24]/40 group-hover:bg-[#f59e0b] group-hover:text-[#11100e] group-hover:shadow-[0_15px_35px_rgba(245,158,11,0.30)]">
-                    <IconComponent className="h-6 w-6" />
+                  <div className="flex items-center gap-3 text-[#fbbf24]">
+                    <span className="h-10 w-px bg-[#fbbf24]/70 transition-all duration-500 group-hover:h-12 group-hover:bg-[#fde68a]" />
+                    <IconComponent className="h-5 w-5 stroke-[1.5] transition-colors duration-300 group-hover:text-[#fde68a]" />
                   </div>
 
                   <span className="text-sm font-bold tracking-[0.2em] text-white/10 transition-colors duration-500 group-hover:text-[#fbbf24]/50">
