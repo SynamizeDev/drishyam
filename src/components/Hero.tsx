@@ -99,7 +99,7 @@ export default function Hero() {
 
         {/* ================= CONTENT ================= */}
         <div className="absolute inset-0 flex  z-10 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto w-full grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="w-full grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
 
             <motion.div
               key={activeSlide.title}

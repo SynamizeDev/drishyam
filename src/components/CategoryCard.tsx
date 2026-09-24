@@ -143,7 +143,7 @@ export default function OpticalCategories() {
 
   return (
     <section className="w-full bg-[#f7f7f5] py-3">
-      <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+      <div className=" px-5 sm:px-8 lg:px-12">
 
         {/* Desktop Slider Controls */}
         {shouldUseSlider && (
