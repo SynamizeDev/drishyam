@@ -36,36 +36,34 @@ const ICON_MAP: Record<string, React.ElementType> = {
   CheckCircle2,
 };
 
+const BENEFIT_IMAGES = [
+  "/assets/Premium-Quality.png",
+  "/assets/Prescription-Ready.png",
+  "/assets/Easy-Returns.png",
+  "/assets/Fast-Delivery.png",
+];
+
 export default function Benefits() {
-  const [benefits, setBenefits] = useState(
-    DEFAULT_SITE_CONTENT.benefits
-  );
+  const [benefits, setBenefits] = useState(DEFAULT_SITE_CONTENT.benefits);
 
   useEffect(() => {
     const sync = () => {
       const content = getSiteContent();
-      setBenefits(
-        content.benefits ?? DEFAULT_SITE_CONTENT.benefits
-      );
+      setBenefits(content.benefits ?? DEFAULT_SITE_CONTENT.benefits);
     };
 
     sync();
 
-    void hydrateSiteContent().then((content) =>
-      setBenefits(
-        content.benefits ?? DEFAULT_SITE_CONTENT.benefits
-      )
-    );
+    void hydrateSiteContent().then((content) => {
+      setBenefits(content.benefits ?? DEFAULT_SITE_CONTENT.benefits);
+    });
 
     window.addEventListener("storage", sync);
     window.addEventListener("drishyam:content-update", sync);
 
     return () => {
       window.removeEventListener("storage", sync);
-      window.removeEventListener(
-        "drishyam:content-update",
-        sync
-      );
+      window.removeEventListener("drishyam:content-update", sync);
     };
   }, []);
 
@@ -73,13 +71,11 @@ export default function Benefits() {
 
   return (
     <section className="relative isolate overflow-hidden bg-[#11100e] py-20 sm:py-24 lg:py-28">
-      {/* Ambient background glows */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[5%] top-[10%] h-[300px] w-[300px] rounded-full bg-[#f59e0b]/15 blur-[120px]" />
         <div className="absolute right-[5%] top-[30%] h-[350px] w-[350px] rounded-full bg-[#eab308]/10 blur-[140px]" />
         <div className="absolute bottom-[-150px] left-1/2 h-[400px] w-[500px] -translate-x-1/2 rounded-full bg-[#f59e0b]/10 blur-[150px]" />
 
-        {/* Subtle grid */}
         <div
           className="absolute inset-0 opacity-[0.035]"
           style={{
@@ -89,12 +85,10 @@ export default function Benefits() {
           }}
         />
 
-        {/* Top border glow */}
         <div className="absolute left-1/2 top-0 h-px w-[80%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#f59e0b]/70 to-transparent" />
       </div>
 
-      <div className="relative  px-4 sm:px-6 lg:px-8">
-        {/* Section heading */}
+      <div className="relative px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-12 max-w-3xl text-center sm:mb-16">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 backdrop-blur-xl">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#f59e0b]/15">
@@ -114,41 +108,50 @@ export default function Benefits() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-white/50 sm:text-base">
-            Every detail is designed to give you a premium,
-            comfortable and confident eyewear experience.
+            Every detail is designed to give you a premium, comfortable and confident eyewear experience.
           </p>
         </div>
 
-        {/* Dynamic benefit cards */}
         <div
           className={`grid gap-4 sm:gap-5 lg:gap-6 ${
             benefits.length >= 4
               ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
               : benefits.length === 3
-              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-              : "grid-cols-1 sm:grid-cols-2"
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                : "grid-cols-1 sm:grid-cols-2"
           }`}
         >
           {benefits.map((item, index) => {
-            const IconComponent =
-              ICON_MAP[item.icon] || ShieldCheck;
+            const IconComponent = ICON_MAP[item.icon] ?? ShieldCheck;
+            const imageSrc =
+              BENEFIT_IMAGES[index] ?? item.icon ?? BENEFIT_IMAGES[0];
+            const isImageIcon =
+              typeof imageSrc === "string" &&
+              (imageSrc.startsWith("/") ||
+                imageSrc.startsWith("http") ||
+                imageSrc.includes("."));
 
             return (
               <div
-                key={item.id}
+                key={item.id ?? `${item.title}-${index}`}
                 className="group relative min-h-[250px] overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.045] p-6 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:border-[#f59e0b]/40 hover:bg-white/[0.08] hover:shadow-[0_25px_80px_rgba(0,0,0,0.35)]"
               >
-                {/* Glass shine */}
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.10] via-transparent to-transparent opacity-60" />
-
-                {/* Golden glow on hover */}
                 <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#f59e0b]/0 blur-3xl transition-all duration-500 group-hover:bg-[#f59e0b]/20" />
 
-                {/* Top row */}
                 <div className="relative z-10 flex items-start justify-between">
                   <div className="flex items-center gap-3 text-[#fbbf24]">
-                    <span className="h-10 w-px bg-[#fbbf24]/70 transition-all duration-500 group-hover:h-12 group-hover:bg-[#fde68a]" />
-                    <IconComponent className="h-5 w-5 stroke-[1.5] transition-colors duration-300 group-hover:text-[#fde68a]" />
+                    <div className="flex  transition-all duration-500 group-hover:border-[#f59e0b]/40 ">
+                      {isImageIcon ? (
+                        <img
+                          src={imageSrc}
+                          alt={item.title}
+                          className="h-30 w-30 object-contain transition-all duration-500 group-hover:scale-110"
+                        />
+                      ) : (
+                        <IconComponent className="h-5 w-5" />
+                      )}
+                    </div>
                   </div>
 
                   <span className="text-sm font-bold tracking-[0.2em] text-white/10 transition-colors duration-500 group-hover:text-[#fbbf24]/50">
@@ -156,7 +159,6 @@ export default function Benefits() {
                   </span>
                 </div>
 
-                {/* Content */}
                 <div className="relative z-10 mt-10">
                   <h3 className="text-lg font-semibold tracking-tight text-white transition-colors duration-300 group-hover:text-[#fde68a]">
                     {item.title}
@@ -167,7 +169,6 @@ export default function Benefits() {
                   </p>
                 </div>
 
-                {/* Bottom line */}
                 <div className="absolute bottom-0 left-0 h-[2px] w-full bg-white/5">
                   <div className="h-full w-0 bg-gradient-to-r from-[#f59e0b] via-[#fbbf24] to-transparent transition-all duration-700 group-hover:w-full" />
                 </div>
@@ -176,7 +177,6 @@ export default function Benefits() {
           })}
         </div>
 
-        {/* Bottom decorative element */}
         <div className="mt-14 flex items-center justify-center gap-3">
           <div className="h-px w-12 bg-gradient-to-r from-transparent to-[#f59e0b]/60" />
 

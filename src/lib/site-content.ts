@@ -143,25 +143,25 @@ export const DEFAULT_BENEFITS: BenefitItem[] = [
     id: "benefit-1",
     title: "Premium Quality",
     description: "Handcrafted from Italian acetate and Japanese aerospace titanium.",
-    icon: "ShieldCheck",
+    icon: "/assets/benefits/premium-quality.svg",
   },
   {
     id: "benefit-2",
     title: "Prescription Ready",
     description: "Custom lenses fitted by licensed opticians to your exact prescription.",
-    icon: "ClipboardCheck",
+    icon: "/assets/benefits/prescription-ready.svg",
   },
   {
     id: "benefit-3",
     title: "Easy Returns",
     description: "Risk-free 30-day return window with complimentary shipping.",
-    icon: "ArrowLeftRight",
+    icon: "/assets/benefits/easy-returns.svg",
   },
   {
     id: "benefit-4",
     title: "Fast Delivery",
     description: "Dispatched within 24 hours with custom packaging protection.",
-    icon: "Truck",
+    icon: "/assets/benefits/fast-delivery.svg",
   },
 ];
 
