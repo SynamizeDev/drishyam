@@ -42,14 +42,14 @@ export default function Footer() {
         <div className="absolute left-1/2 top-0 h-px w-[85%] -translate-x-1/2 bg-gradient-to-r from-transparent via-[#f59e0b]/70 to-transparent" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative  px-4 sm:px-6 lg:px-8">
         {/* Main footer */}
         <div className="grid grid-cols-1 gap-10 border-b border-white/10 py-14 md:grid-cols-12 md:gap-12 lg:py-20">
           {/* Brand section */}
           <div className="md:col-span-5 lg:col-span-4">
             <div className="space-y-6">
               {/* Glass logo container */}
-              <div className="inline-flex rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur-xl">
+              <div className="inline-flex rounded-2xl border border-white/10 bg-white px-5 py-4 backdrop-blur-xl">
                 <BrandLogo
                   variant="full"
                   size="md"
