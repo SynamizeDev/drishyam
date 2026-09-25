@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import brandLogo from "../../public/assets/brand-logo.webp";
+import brandLogo from "../../public/assets/brand-logo.png";
 
 export interface BrandLogoProps {
   variant?: "full";

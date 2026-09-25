@@ -1,0 +1,17 @@
+<svg width="2000" height="700" viewBox="0 0 2000 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="2000" height="700" fill="#050505"/>
+
+  <g>
+    <path d="M116 354C116 230 202 124 326 124C419 124 483 175 522 236C490 230 467 230 445 230C354 230 285 295 285 382C285 471 358 537 447 537C483 537 518 526 546 507C491 607 394 666 298 666C198 666 116 580 116 354Z" fill="#D9B36A"/>
+    <circle cx="280" cy="349" r="145" fill="#050505"/>
+    <circle cx="469" cy="345" r="10" fill="#D9B36A" opacity="0.45"/>
+    <circle cx="507" cy="312" r="8" fill="#E54B4B" opacity="0.9"/>
+    <circle cx="532" cy="352" r="6" fill="#E54B4B" opacity="0.7"/>
+    <circle cx="553" cy="340" r="5" fill="#E54B4B" opacity="0.7"/>
+  </g>
+
+  <g font-family="'Segoe UI', Arial, sans-serif" font-weight="700">
+    <text x="520" y="430" font-size="420" letter-spacing="-58" fill="#3A3A3A">drishyam</text>
+    <text x="600" y="610" font-size="120" letter-spacing="18" fill="#3A3A3A">OPTICALS</text>
+  </g>
+</svg>
