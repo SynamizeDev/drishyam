@@ -89,6 +89,20 @@ import type { StaticImageData } from "next/image";
 
 export type FrameType = "Rimless Frames" | "Sheet Frames" | "Metal Frames";
 
+export const ACCESSORY_SUBCATEGORIES = [
+  "Lens Care",
+  "Eyewear Cases",
+  "Cleaning Wipes & Cloths",
+  "Eyeglass Chains & Cords",
+  "Contact Lens Accessories",
+  "Nose Pads & Spare Parts",
+  "Repair Kits & Tools",
+  "Eyeglass Stands",
+  "Anti-Fog Products",
+] as const;
+
+export type AccessorySubcategory = (typeof ACCESSORY_SUBCATEGORIES)[number];
+
 export interface Product {
   id: string;
   name: string;
@@ -102,7 +116,8 @@ export interface Product {
   colors: ProductColor[];
   images: Array<string | StaticImageData>; // At least 2 images for hover effect
   gender: "Men" | "Women" | "Kids" | "Unisex";
-  material: "Acetate" | "Titanium" | "Metal" | "Eco-Friendly";
+  material: "Acetate" | "Titanium" | "Metal" | "Eco-Friendly" | "Not Applicable";
+  accessoryCategory?: AccessorySubcategory;
   frameType?: FrameType;
   size: "Small" | "Medium" | "Large";
   prescription: boolean;

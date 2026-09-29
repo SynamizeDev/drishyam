@@ -95,7 +95,7 @@ export default function LensConfigurationEditor({ value, onChange, fieldClass }:
 
       <div className="space-y-4">
         {value.visionTypes.map((vision, visionIndex) => (
-          <div key={vision.id || visionIndex} className="rounded-2xl border border-[#eadcc6] bg-white p-4">
+          <div key={visionIndex} className="rounded-2xl border border-[#eadcc6] bg-white p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#a55d00]">Vision type {visionIndex + 1}</p>
               <button type="button" onClick={() => onChange({ ...value, visionTypes: value.visionTypes.filter((_, index) => index !== visionIndex) })} className="inline-flex items-center gap-1 text-xs font-semibold text-red-600" aria-label="Delete vision type"><Trash2 className="h-3.5 w-3.5" />Remove</button>
@@ -115,7 +115,7 @@ export default function LensConfigurationEditor({ value, onChange, fieldClass }:
             <div className="mt-4 space-y-2">
               <div className="flex items-center justify-between"><p className="text-xs font-semibold text-[#111111]">Lens options</p><button type="button" onClick={() => updateVision(visionIndex, { lensOptions: [...vision.lensOptions, emptyLens()] })} className="inline-flex items-center gap-1 text-xs font-semibold text-[#a55d00]"><Plus className="h-3.5 w-3.5" />Add lens</button></div>
               {vision.lensOptions.map((lens, lensIndex) => (
-                <div key={lens.id || lensIndex} className="grid gap-2 rounded-xl border border-[#f1e8db] bg-[#fffaf5] p-3 sm:grid-cols-[1fr_120px_auto]">
+                <div key={lensIndex} className="grid gap-2 rounded-xl border border-[#f1e8db] bg-[#fffaf5] p-3 sm:grid-cols-[1fr_120px_auto]">
                   <input value={lens.name} onChange={(event) => updateLens(visionIndex, lensIndex, { name: event.target.value, id: event.target.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-") })} placeholder="Lens name" className={fieldClass} />
                   <input type="number" min="0" value={lens.price} onChange={(event) => updateLens(visionIndex, lensIndex, { price: Number(event.target.value) || 0 })} placeholder="Price" className={fieldClass} />
                   <button type="button" onClick={() => updateVision(visionIndex, { lensOptions: vision.lensOptions.filter((_, index) => index !== lensIndex) })} className="flex h-10 items-center justify-center text-red-600" aria-label="Delete lens"><Trash2 className="h-4 w-4" /></button>
@@ -127,7 +127,7 @@ export default function LensConfigurationEditor({ value, onChange, fieldClass }:
             <div className="mt-4 space-y-2">
               <div className="flex items-center justify-between"><p className="text-xs font-semibold text-[#111111]">Progressive corridors</p><button type="button" onClick={() => updateVision(visionIndex, { corridors: [...(vision.corridors ?? []), emptyCorridor()] })} className="inline-flex items-center gap-1 text-xs font-semibold text-[#a55d00]"><Plus className="h-3.5 w-3.5" />Add corridor</button></div>
               {(vision.corridors ?? []).map((corridor, corridorIndex) => (
-                <div key={corridor.id || corridorIndex} className="grid gap-2 rounded-xl border border-[#f1e8db] bg-[#fffaf5] p-3 sm:grid-cols-[1fr_120px_auto]">
+                <div key={corridorIndex} className="grid gap-2 rounded-xl border border-[#f1e8db] bg-[#fffaf5] p-3 sm:grid-cols-[1fr_120px_auto]">
                   <input value={corridor.name} onChange={(event) => updateCorridor(visionIndex, corridorIndex, { name: event.target.value, id: event.target.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-") })} placeholder="Corridor name" className={fieldClass} />
                   <input type="number" min="0" value={corridor.price} onChange={(event) => updateCorridor(visionIndex, corridorIndex, { price: Number(event.target.value) || 0 })} placeholder="Price" className={fieldClass} />
                   <button type="button" onClick={() => updateVision(visionIndex, { corridors: vision.corridors?.filter((_, index) => index !== corridorIndex) })} className="flex h-10 items-center justify-center text-red-600" aria-label="Delete corridor"><Trash2 className="h-4 w-4" /></button>
@@ -160,7 +160,7 @@ export default function LensConfigurationEditor({ value, onChange, fieldClass }:
         <p className="text-xs font-semibold text-[#111111]">Additional paid options</p>
         <div className="mt-3 space-y-2">
           {(value.additionalOptions ?? []).map((option, index) => (
-            <div key={option.id || index} className="grid gap-2 sm:grid-cols-[1fr_120px_auto]">
+            <div key={index} className="grid gap-2 sm:grid-cols-[1fr_120px_auto]">
               <input value={option.name} onChange={(event) => onChange({ ...value, additionalOptions: updateAt(value.additionalOptions ?? [], index, { ...option, id: event.target.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-"), name: event.target.value }) })} placeholder="Option name" className={fieldClass} />
               <input type="number" min="0" value={option.price} onChange={(event) => onChange({ ...value, additionalOptions: updateAt(value.additionalOptions ?? [], index, { ...option, price: Number(event.target.value) || 0 }) })} placeholder="Price" className={fieldClass} />
               <button type="button" onClick={() => onChange({ ...value, additionalOptions: (value.additionalOptions ?? []).filter((_, itemIndex) => itemIndex !== index) })} className="flex h-10 items-center justify-center text-red-600" aria-label="Delete option"><Trash2 className="h-4 w-4" /></button>

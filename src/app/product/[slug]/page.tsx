@@ -14,15 +14,20 @@ import type { ProductConfigurationSelection } from "@/types/product";
 import { makeWhatsAppUrl } from "@/lib/whatsapp";
 import {
   ArrowLeft,
+  ArrowLeftRight,
   BadgeCheck,
   Check,
+  Glasses,
   Heart,
+  MoveHorizontal,
   RotateCcw,
+  Ruler,
   ShieldCheck,
   ShoppingBag,
   Sparkles,
   Star,
   Truck,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -54,6 +59,7 @@ export default function ProductDetailPage({ params }: PageProps) {
     product?.colors[0] ?? null
   );
   const [activeImage, setActiveImage] = useState(product?.images[0] || "");
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "details" | "materials" | "shipping"
   >("details");
@@ -70,6 +76,17 @@ export default function ProductDetailPage({ params }: PageProps) {
       setConfigurationValid(true);
     }
   }, [product]);
+
+  useEffect(() => {
+    if (!isImageModalOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsImageModalOpen(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isImageModalOpen]);
 
   if (!product) {
     return (
@@ -147,8 +164,9 @@ export default function ProductDetailPage({ params }: PageProps) {
     .slice(0, 4);
 
   const isLiked = isInWishlist(product.id);
+  const isAccessory = product.category.trim().toLowerCase() === "accessories";
 
-  const featureHighlights = [
+  const featureHighlights = isAccessory ? [] : [
     {
       icon: Sparkles,
       label: "Premium material",
@@ -165,6 +183,20 @@ export default function ProductDetailPage({ params }: PageProps) {
       value: product.gender,
     },
   ];
+
+  const dimensionValues = isAccessory ? [] : product.dimensions.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+  const frameDimensions = dimensionValues.length >= 3
+    ? [
+        { icon: Ruler, label: "Lens width", value: `${dimensionValues[0]} mm` },
+        { icon: ArrowLeftRight, label: "Bridge", value: `${dimensionValues[1]} mm` },
+        { icon: MoveHorizontal, label: "Temple length", value: `${dimensionValues[2]} mm` },
+        {
+          icon: Glasses,
+          label: "Frame width (approx.)",
+          value: `${dimensionValues[0] * 2 + dimensionValues[1] + 10} mm`,
+        },
+      ]
+    : [];
 
   return (
     <>
@@ -380,11 +412,16 @@ export default function ProductDetailPage({ params }: PageProps) {
     <div className="lg:col-span-7">
       <div className="sticky top-6">
         <div className="overflow-hidden rounded-[24px] border border-beige-100 bg-[#f9f3ed] shadow-[0_20px_60px_rgba(17,17,17,0.07)]">
-          <div className="relative aspect-[4/3] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setIsImageModalOpen(true)}
+            aria-label={`View larger image of ${product.name}`}
+            className="relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden"
+          >
             {activeImage ? (
               <Image
                 src={activeImage}
-                alt={product.name}
+                alt=""
                 fill
                 priority
                 unoptimized
@@ -396,7 +433,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                 No image available
               </div>
             )}
-          </div>
+          </button>
         </div>
 
         <div className="mt-4 grid grid-cols-4 gap-3">
@@ -438,7 +475,7 @@ export default function ProductDetailPage({ params }: PageProps) {
             </span>
 
             <span className="text-charcoal/45">
-              {product.shape}
+              {product.accessoryCategory ?? product.shape}
             </span>
           </div>
 
@@ -474,26 +511,60 @@ export default function ProductDetailPage({ params }: PageProps) {
         <div className="space-y-4 pt-4">
 
           {/* Feature Highlights */}
-          <div className="grid grid-cols-3 gap-2">
-            {featureHighlights.map(
-              ({ icon: Icon, label, value }) => (
+          {isAccessory ? (
+            <div className="rounded-xl border border-beige-100 bg-[#fffdfb] p-3">
+              <p className="text-sm leading-relaxed text-charcoal/70">{product.description}</p>
+              <ul className="mt-3 space-y-2 text-sm text-charcoal/70">
+                {product.details.map((detail) => (
+                  <li key={detail} className="flex gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-saffron" aria-hidden="true" />
+                    <span>{detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {featureHighlights.map(({ icon: Icon, label, value }) => (
                 <div
                   key={label}
                   className="rounded-xl border border-beige-100 bg-[#fffdfb] p-2.5"
                 >
                   <Icon className="mb-1.5 h-3.5 w-3.5 text-saffron" />
-
                   <div className="text-[9px] font-bold uppercase tracking-[0.14em] text-charcoal/45">
                     {label}
                   </div>
-
                   <div className="mt-0.5 text-xs font-semibold leading-tight text-charcoal">
                     {value}
                   </div>
                 </div>
-              )
-            )}
-          </div>
+              ))}
+            </div>
+          )}
+
+          {frameDimensions.length > 0 && (
+            <div className="border-t border-beige-100 pt-4">
+              <h2 className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-charcoal/50">
+                Frame dimensions
+              </h2>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {frameDimensions.map(({ icon: Icon, label, value }) => (
+                  <div
+                    key={label}
+                    className="min-w-0 rounded-xl border border-beige-100 bg-[#fffdfb] p-2.5"
+                  >
+                    <Icon className="mb-2 h-4 w-4 text-saffron" aria-hidden="true" />
+                    <div className="text-[9px] font-bold uppercase leading-tight tracking-[0.08em] text-charcoal/45">
+                      {label}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-charcoal">
+                      {value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* =========================
               EXISTING DYNAMIC CONFIGURATOR
@@ -599,6 +670,39 @@ export default function ProductDetailPage({ params }: PageProps) {
           </section>
         )}
       </main>
+
+      {isImageModalOpen && activeImage && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${product.name} image`}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsImageModalOpen(false);
+            }
+          }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+        >
+          <button
+            type="button"
+            onClick={() => setIsImageModalOpen(false)}
+            aria-label="Close enlarged product image"
+            className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <div className="relative h-[85vh] w-[92vw] max-w-6xl">
+            <Image
+              src={activeImage}
+              alt={product.name}
+              fill
+              unoptimized
+              sizes="92vw"
+              className="object-contain"
+            />
+          </div>
+        </div>
+      )}
 
       <Footer />
       <SearchModal />

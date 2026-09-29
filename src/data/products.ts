@@ -1,7 +1,9 @@
-import { Product } from "@/types/product";
+import { AccessorySubcategory, Product } from "@/types/product";
 import { supabase } from "@/lib/supabase";
 
 const PRODUCT_STORAGE_KEY = "drishyam_products";
+const ACCESSORY_LOCAL_MIGRATION_KEY = "drishyam_accessory_products_local_v2";
+const ACCESSORY_REMOTE_MIGRATION_KEY = "drishyam_accessory_products_remote_v2";
 
 const visionTypeImages = {
   "zero-power": "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?q=80&w=800&auto=format&fit=crop",
@@ -95,6 +97,117 @@ function createCatalogLensConfiguration(): Product["lensConfiguration"] {
     additionalOptions: [{ id: "anti-reflective", name: "Anti-reflective coating", price: 300 }],
     prescription: { enabled: true, required: false, accept: ".pdf,image/*", maxSizeMb: 10 },
   };
+}
+
+const pexelsImage = (id: number) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1000`;
+
+const accessoryImageSets: Record<AccessorySubcategory, number[]> = {
+  "Lens Care": [5843448, 6334190, 5201902, 5843429, 5842850],
+  "Eyewear Cases": [1231065, 33694195, 29604680, 4512812, 5201988, 17633192],
+  "Cleaning Wipes & Cloths": [6334190, 5201902, 5843448, 8217234],
+  "Eyeglass Chains & Cords": [10220085, 10220086, 10220084, 10176223],
+  "Contact Lens Accessories": [5843347, 5843432, 15897969, 5843349, 5843442, 5843429],
+  "Nose Pads & Spare Parts": [5715905, 5715901, 9773118, 5201938],
+  "Repair Kits & Tools": [5715901, 5715905, 5201938, 5201928],
+  "Eyeglass Stands": [5201984, 28211037, 5201989, 5202053, 5201940],
+  "Anti-Fog Products": [5843448, 5201902, 6334190],
+};
+
+const accessoryDefinitions: Array<{
+  name: string;
+  accessoryCategory: AccessorySubcategory;
+  price: number;
+}> = [
+  { name: "Lens Cleaning Spray", accessoryCategory: "Lens Care", price: 249 },
+  { name: "Lens Cleaning Solution", accessoryCategory: "Lens Care", price: 299 },
+  { name: "Lens Cleaning Kit", accessoryCategory: "Lens Care", price: 499 },
+  { name: "Screen & Lens Cleaner", accessoryCategory: "Lens Care", price: 349 },
+  { name: "Soft Spectacle Case", accessoryCategory: "Eyewear Cases", price: 299 },
+  { name: "Sunglass Case", accessoryCategory: "Eyewear Cases", price: 399 },
+  { name: "Foldable Case", accessoryCategory: "Eyewear Cases", price: 449 },
+  { name: "Protective Pouch", accessoryCategory: "Eyewear Cases", price: 199 },
+  { name: "Glasses Storage Box", accessoryCategory: "Eyewear Cases", price: 899 },
+  { name: "Wooden Spectacle Case", accessoryCategory: "Eyewear Cases", price: 999 },
+  { name: "Travel Eyewear Case", accessoryCategory: "Eyewear Cases", price: 699 },
+  { name: "Lens Cleaning Wipes", accessoryCategory: "Cleaning Wipes & Cloths", price: 149 },
+  { name: "Premium Cleaning Kit", accessoryCategory: "Cleaning Wipes & Cloths", price: 799 },
+  { name: "Eyeglass Chains", accessoryCategory: "Eyeglass Chains & Cords", price: 349 },
+  { name: "Spectacle Cords", accessoryCategory: "Eyeglass Chains & Cords", price: 199 },
+  { name: "Neck Straps", accessoryCategory: "Eyeglass Chains & Cords", price: 249 },
+  { name: "Silicone Retainers", accessoryCategory: "Eyeglass Chains & Cords", price: 149 },
+  { name: "Anti-Slip Ear Hooks", accessoryCategory: "Eyeglass Chains & Cords", price: 99 },
+  { name: "Designer Eyeglass Chains", accessoryCategory: "Eyeglass Chains & Cords", price: 899 },
+  { name: "Beaded Glasses Chains", accessoryCategory: "Eyeglass Chains & Cords", price: 699 },
+  { name: "Contact Lens Cases", accessoryCategory: "Contact Lens Accessories", price: 99 },
+  { name: "Contact Lens Cleaning Solution", accessoryCategory: "Contact Lens Accessories", price: 249 },
+  { name: "Multipurpose Solution", accessoryCategory: "Contact Lens Accessories", price: 299 },
+  { name: "Rewetting Drops", accessoryCategory: "Contact Lens Accessories", price: 199 },
+  { name: "Contact Lens Travel Kits", accessoryCategory: "Contact Lens Accessories", price: 249 },
+  { name: "Contact Lens Tweezers", accessoryCategory: "Contact Lens Accessories", price: 149 },
+  { name: "Contact Lens Applicators", accessoryCategory: "Contact Lens Accessories", price: 149 },
+  { name: "Universal Silicone Nose Pads", accessoryCategory: "Nose Pads & Spare Parts", price: 149 },
+  { name: "Replacement Nose Pads (Screw-In Pair)", accessoryCategory: "Nose Pads & Spare Parts", price: 199 },
+  { name: "Nose Pad Screws", accessoryCategory: "Nose Pads & Spare Parts", price: 99 },
+  { name: "Frame Screws", accessoryCategory: "Nose Pads & Spare Parts", price: 99 },
+  { name: "Temple Screws", accessoryCategory: "Nose Pads & Spare Parts", price: 99 },
+  { name: "Replacement Hinges", accessoryCategory: "Nose Pads & Spare Parts", price: 249 },
+  { name: "Temple Tips", accessoryCategory: "Nose Pads & Spare Parts", price: 149 },
+  { name: "Replacement Temple Tips", accessoryCategory: "Nose Pads & Spare Parts", price: 199 },
+  { name: "Replacement Temples", accessoryCategory: "Nose Pads & Spare Parts", price: 399 },
+  { name: "Frame Repair Kit", accessoryCategory: "Repair Kits & Tools", price: 399 },
+  { name: "Mini Screwdriver Set", accessoryCategory: "Repair Kits & Tools", price: 299 },
+  { name: "Eyewear Pliers", accessoryCategory: "Repair Kits & Tools", price: 499 },
+  { name: "Eyeglass Stands", accessoryCategory: "Eyeglass Stands", price: 399 },
+  { name: "Sunglass Stands", accessoryCategory: "Eyeglass Stands", price: 499 },
+  { name: "Display Trays", accessoryCategory: "Eyeglass Stands", price: 799 },
+  { name: "Frame Holders", accessoryCategory: "Eyeglass Stands", price: 249 },
+  { name: "Lens Display Stands", accessoryCategory: "Eyeglass Stands", price: 599 },
+  { name: "Countertop Display Boxes", accessoryCategory: "Eyeglass Stands", price: 1299 },
+  { name: "Anti-Fog Spray", accessoryCategory: "Anti-Fog Products", price: 249 },
+  { name: "Anti-Fog Wipes", accessoryCategory: "Anti-Fog Products", price: 149 },
+];
+
+function createAccessoryProducts(): Product[] {
+  const categoryIndexes = new Map<AccessorySubcategory, number>();
+
+  return accessoryDefinitions.map((definition) => {
+    const index = categoryIndexes.get(definition.accessoryCategory) ?? 0;
+    const photos = accessoryImageSets[definition.accessoryCategory];
+    categoryIndexes.set(definition.accessoryCategory, index + 1);
+    const slug = definition.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+    return {
+      id: `accessory-${slug}`,
+      name: definition.name,
+      slug,
+      category: "Accessories",
+      accessoryCategory: definition.accessoryCategory,
+      shape: "Rectangle",
+      price: definition.price,
+      rating: 4.7,
+      reviewsCount: 0,
+      colors: [{ name: "Assorted", hex: "#8b7355" }],
+      images: [
+        pexelsImage(photos[index % photos.length]),
+        pexelsImage(photos[(index + 1) % photos.length]),
+      ],
+      gender: "Unisex",
+      material: "Not Applicable",
+      size: "Medium",
+      prescription: false,
+      description: `${definition.name} for everyday eyewear care, storage, or maintenance.`,
+      details: [
+        `Category: ${definition.accessoryCategory}`,
+        "Check fit and compatibility before purchase.",
+        "Images are illustrative; included items may vary by product.",
+      ],
+      dimensions: "",
+      isBestSeller: false,
+      isNew: false,
+      lensConfiguration: { enabled: false, visionTypes: [] },
+    };
+  });
 }
 
 export const defaultProducts: Product[] = [
@@ -307,7 +420,98 @@ export const defaultProducts: Product[] = [
     dimensions: "49-20-145",
     isBestSeller: false,
     isNew: false
-  }
+  },
+  {
+    id: "accessory-case-leather",
+    name: "Classic Leather Eyewear Case",
+    slug: "classic-leather-eyewear-case",
+    category: "Accessories",
+    accessoryCategory: "Eyewear Cases",
+    shape: "Rectangle",
+    price: 499,
+    rating: 4.8,
+    reviewsCount: 0,
+    colors: [{ name: "Brown", hex: "#795548" }],
+    images: [
+      "https://images.pexels.com/photos/1231065/pexels-photo-1231065.jpeg?auto=compress&cs=tinysrgb&w=1000",
+      "https://images.pexels.com/photos/33694195/pexels-photo-33694195.jpeg?auto=compress&cs=tinysrgb&w=1000",
+    ],
+    gender: "Unisex",
+    material: "Eco-Friendly",
+    size: "Medium",
+    prescription: false,
+    description: "A compact everyday case to help protect your eyewear at home or on the go.",
+    details: [
+      "Protective case for everyday eyewear storage",
+      "Compact shape for bags and travel",
+      "Eyeglasses shown in the photos are not included",
+    ],
+    dimensions: "",
+    isBestSeller: false,
+    isNew: true,
+    lensConfiguration: { enabled: false, visionTypes: [] },
+  },
+  {
+    id: "accessory-case-hard-shell",
+    name: "Everyday Hard-Shell Glasses Case",
+    slug: "everyday-hard-shell-glasses-case",
+    category: "Accessories",
+    accessoryCategory: "Eyewear Cases",
+    shape: "Rectangle",
+    price: 599,
+    rating: 4.7,
+    reviewsCount: 0,
+    colors: [{ name: "Classic Brown", hex: "#6d4c41" }],
+    images: [
+      "https://images.pexels.com/photos/33694189/pexels-photo-33694189.jpeg?auto=compress&cs=tinysrgb&w=1000",
+      "https://images.pexels.com/photos/1231065/pexels-photo-1231065.jpeg?auto=compress&cs=tinysrgb&w=1000",
+    ],
+    gender: "Unisex",
+    material: "Eco-Friendly",
+    size: "Medium",
+    prescription: false,
+    description: "A protective glasses case made for keeping frames together between wears.",
+    details: [
+      "Protective case for eyeglasses or sunglasses",
+      "Easy to carry for daily use and travel",
+      "Eyeglasses shown in the photos are not included",
+    ],
+    dimensions: "",
+    isBestSeller: false,
+    isNew: true,
+    lensConfiguration: { enabled: false, visionTypes: [] },
+  },
+  {
+    id: "accessory-cleaning-cloth",
+    name: "Microfiber Eyewear Cleaning Cloth",
+    slug: "microfiber-eyewear-cleaning-cloth",
+    category: "Accessories",
+    accessoryCategory: "Cleaning Wipes & Cloths",
+    shape: "Rectangle",
+    price: 199,
+    rating: 4.8,
+    reviewsCount: 0,
+    colors: [{ name: "Assorted", hex: "#718096" }],
+    images: [
+      "https://images.pexels.com/photos/6334194/pexels-photo-6334194.jpeg?auto=compress&cs=tinysrgb&w=1000",
+      "https://images.pexels.com/photos/5843448/pexels-photo-5843448.jpeg?auto=compress&cs=tinysrgb&w=1000",
+    ],
+    gender: "Unisex",
+    material: "Eco-Friendly",
+    size: "Small",
+    prescription: false,
+    description: "A soft cloth for wiping fingerprints and everyday smudges from eyewear lenses.",
+    details: [
+      "For cleaning eyeglass and sunglass lenses",
+      "Lightweight and easy to carry",
+      "Use with a suitable lens-cleaning solution when needed",
+    ],
+    dimensions: "",
+    isBestSeller: false,
+    isNew: true,
+    lensConfiguration: { enabled: false, visionTypes: [] },
+  },
+  ...createAccessoryProducts(),
 ];
 
 defaultProducts.forEach((product) => {
@@ -327,9 +531,21 @@ export function getStoredProducts(): Product[] {
       const parsed = JSON.parse(raw);
 
       if (Array.isArray(parsed)) {
-        return parsed.map((product) => ensureFocalVisionType({
+        const hasLocalMigration = window.localStorage.getItem(ACCESSORY_LOCAL_MIGRATION_KEY) === "true";
+        const migratedProducts = hasLocalMigration
+          ? parsed
+          : mergeStarterAccessories(parsed as Product[]);
+
+        if (!hasLocalMigration) {
+          window.localStorage.setItem(ACCESSORY_LOCAL_MIGRATION_KEY, "true");
+          if (JSON.stringify(migratedProducts) !== JSON.stringify(parsed)) {
+            window.localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(migratedProducts));
+          }
+        }
+
+        return migratedProducts.map((product) => ensureFocalVisionType({
           ...product,
-          lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(),
+          lensConfiguration: product.lensConfiguration ?? getDefaultLensConfiguration(product),
         }));
       }
     }
@@ -353,6 +569,28 @@ export function getStoredProducts(): Product[] {
  */
 export let products: Product[] = defaultProducts;
 
+function getDefaultLensConfiguration(product: Product) {
+  return product.category.toLowerCase() === "accessories"
+    ? { enabled: false, visionTypes: [] }
+    : createCatalogLensConfiguration();
+}
+
+function mergeStarterAccessories(existingProducts: Product[]) {
+  const starterAccessories = defaultProducts.filter((product) => product.category === "Accessories");
+  const starterById = new Map(starterAccessories.map((product) => [product.id, product]));
+  const productsWithSubcategories = existingProducts.map((product) => {
+    const starterProduct = starterById.get(product.id);
+    return product.category === "Accessories" && starterProduct && !product.accessoryCategory
+      ? { ...product, accessoryCategory: starterProduct.accessoryCategory }
+      : product;
+  });
+  const existingIds = new Set(productsWithSubcategories.map((product) => product.id));
+  return [
+    ...productsWithSubcategories,
+    ...starterAccessories.filter((product) => !existingIds.has(product.id)),
+  ];
+}
+
 export function notifyProductsUpdate() {
   if (typeof window === "undefined") return;
 
@@ -369,17 +607,26 @@ export async function saveProducts(nextProducts: Product[]) {
       PRODUCT_STORAGE_KEY,
       JSON.stringify(nextProducts)
     );
+    window.localStorage.setItem(ACCESSORY_LOCAL_MIGRATION_KEY, "true");
 
     notifyProductsUpdate();
   }
 
-  if (!supabase) return;
+  if (!supabase) {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(ACCESSORY_REMOTE_MIGRATION_KEY, "true");
+    }
+    return;
+  }
 
   const { error } = await supabase
     .from("site_data")
     .upsert({ id: "main", products: nextProducts, updated_at: new Date().toISOString() }, { onConflict: "id" });
 
   if (error) throw error;
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(ACCESSORY_REMOTE_MIGRATION_KEY, "true");
+  }
 }
 
 export async function hydrateProducts() {
@@ -393,13 +640,31 @@ export async function hydrateProducts() {
 
   if (error || !Array.isArray(data?.products)) return getStoredProducts();
 
-  const remoteProducts = (data.products as Product[]).map((product) => ensureFocalVisionType({
+  let remoteProductData = data.products as Product[];
+  let remoteMigrationSaved = true;
+
+  if (typeof window !== "undefined" && window.localStorage.getItem(ACCESSORY_REMOTE_MIGRATION_KEY) !== "true") {
+    const migratedProducts = mergeStarterAccessories(remoteProductData);
+    if (JSON.stringify(migratedProducts) !== JSON.stringify(remoteProductData)) {
+      const { error: migrationError } = await supabase
+        .from("site_data")
+        .upsert({ id: "main", products: migratedProducts, updated_at: new Date().toISOString() }, { onConflict: "id" });
+      remoteMigrationSaved = !migrationError;
+    }
+    remoteProductData = migratedProducts;
+  }
+
+  const remoteProducts = remoteProductData.map((product) => ensureFocalVisionType({
     ...product,
-    lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(),
+    lensConfiguration: product.lensConfiguration ?? getDefaultLensConfiguration(product),
   }));
   products = remoteProducts;
   if (typeof window !== "undefined") {
     window.localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(remoteProducts));
+    window.localStorage.setItem(ACCESSORY_LOCAL_MIGRATION_KEY, "true");
+    if (remoteMigrationSaved) {
+      window.localStorage.setItem(ACCESSORY_REMOTE_MIGRATION_KEY, "true");
+    }
     notifyProductsUpdate();
   }
   return remoteProducts;

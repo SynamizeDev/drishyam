@@ -11,7 +11,7 @@ import MobileMenu from "@/components/MobileMenu";
 import CartDrawer from "@/components/CartDrawer";
 import { getStoredProducts, hydrateProducts, products as initialProducts } from "@/data/products";
 import { getCategoryProductIds, getSiteContent, hydrateSiteContent } from "@/lib/site-content";
-import { Product } from "@/types/product";
+import { ACCESSORY_SUBCATEGORIES, Product } from "@/types/product";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
 
 interface Filters {
@@ -19,13 +19,15 @@ interface Filters {
   gender: string;
   shape: string;
   material: string;
+  accessoryCategory?: string;
 }
 
 const initialFilters: Filters = {
   category: "",
   gender: "",
   shape: "",
-  material: ""
+  material: "",
+  accessoryCategory: "",
 };
 
 function ShopContent() {
@@ -59,12 +61,14 @@ function ShopContent() {
     const categoryQuery = searchParams.get("category") || "";
     const genderQuery = searchParams.get("gender") || "";
     const shapeQuery = searchParams.get("shape") || "";
+    const accessoryCategoryQuery = searchParams.get("accessoryCategory") || "";
 
     setFilters((prev) => ({
       ...prev,
       category: categoryQuery,
       gender: genderQuery,
       shape: shapeQuery,
+      accessoryCategory: accessoryCategoryQuery,
     }));
   }, [searchParams]);
 
@@ -83,6 +87,10 @@ function ShopContent() {
     // Filter by Category
     if (filters.category) {
       result = result.filter((p) => p.category.toLowerCase() === filters.category.toLowerCase());
+    }
+
+    if (filters.accessoryCategory) {
+      result = result.filter((product) => product.accessoryCategory === filters.accessoryCategory);
     }
 
     // Filter by Gender
@@ -123,17 +131,49 @@ function ShopContent() {
   const resetFilters = () => {
     setFilters(initialFilters);
   };
+  const isAccessoriesCollection = filters.category.toLowerCase() === "accessories";
 
   return (
     <div className="mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Editorial Header */}
       <div className="mb-10 text-center lg:text-left">
         <h1 className=" text-3xl md:text-4xl text-charcoal font-medium uppercase">
-          The Collection
+          {isAccessoriesCollection ? "Lens & Optical Accessories" : filters.category || "The Collection"}
         </h1>
         <p className="text-sm text-charcoal/50 font-light mt-2 max-w-md">
-          Explore our range of eyeglasses, sunglasses, and blue light block structures handcrafted from precious elements.
+          {isAccessoriesCollection
+            ? "Shop protective eyewear cases and everyday lens-care essentials."
+            : "Explore our range of eyeglasses, sunglasses, and blue light block structures handcrafted from precious elements."}
         </p>
+        {isAccessoriesCollection && (
+          <nav aria-label="Accessory subcategories" className="mt-6 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setFilters((current) => ({ ...current, accessoryCategory: "" }))}
+              className={`rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
+                filters.accessoryCategory === ""
+                  ? "border-charcoal bg-charcoal text-white"
+                  : "border-beige-200 bg-white text-charcoal hover:border-charcoal"
+              }`}
+            >
+              All accessories
+            </button>
+            {ACCESSORY_SUBCATEGORIES.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setFilters((current) => ({ ...current, accessoryCategory: category }))}
+                className={`rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
+                  filters.accessoryCategory === category
+                    ? "border-charcoal bg-charcoal text-white"
+                    : "border-beige-200 bg-white text-charcoal hover:border-charcoal"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </nav>
+        )}
       </div>
 
       {/* Toolbar */}
@@ -149,7 +189,7 @@ function ShopContent() {
         </button>
 
         <span className="hidden lg:inline text-sm text-charcoal/40">
-          Showing {filteredProducts.length} frames
+          Showing {filteredProducts.length} products
         </span>
 
         {/* Sort Selector */}
@@ -183,7 +223,7 @@ function ShopContent() {
 
         {/* Grid List */}
         <div className="flex-1 w-full">
-          <ProductGrid productsList={filteredProducts} />
+          <ProductGrid productsList={filteredProducts} showAll />
         </div>
       </div>
     </div>

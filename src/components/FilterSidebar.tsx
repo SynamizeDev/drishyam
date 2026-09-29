@@ -8,6 +8,7 @@ interface Filters {
   gender: string;
   shape: string;
   material: string;
+  accessoryCategory?: string;
 }
 
 interface FilterSidebarProps {
@@ -20,7 +21,7 @@ interface FilterSidebarProps {
   materialHeading?: string;
 }
 
-const categories = ["Eyeglasses", "Sunglasses", "Blue Light"];
+const categories = ["Eyeglasses", "Sunglasses", "Blue Light", "Accessories"];
 const genders = ["Men", "Women", "Kids", "Unisex"];
 const shapes = ["Rectangle", "Round", "Square", "Oval", "Heart", "Diamond"];
 const materials = ["Acetate", "Metal", "Titanium", "Eco-Friendly"];

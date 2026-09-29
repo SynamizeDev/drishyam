@@ -8,9 +8,10 @@ import { usePathname } from "next/navigation";
 
 interface ProductGridProps {
   productsList: Product[];
+  showAll?: boolean;
 }
 
-export default function ProductGrid({ productsList }: ProductGridProps) {
+export default function ProductGrid({ productsList, showAll = false }: ProductGridProps) {
   const pathname = usePathname();
 
   const isHomePage = pathname === "/";
@@ -25,7 +26,7 @@ export default function ProductGrid({ productsList }: ProductGridProps) {
     );
   }
 
-  const visibleProducts = productsList.slice(0, 6);
+  const visibleProducts = showAll ? productsList : productsList.slice(0, 6);
 
   return (
     <>
@@ -39,7 +40,7 @@ export default function ProductGrid({ productsList }: ProductGridProps) {
         ))}
       </div>
 
-      {productsList.length > 6 && (
+      {productsList.length > 6 && !showAll && (
         <div className="mt-10 flex justify-center">
           <Link
             href="/shop"

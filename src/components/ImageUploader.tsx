@@ -24,7 +24,7 @@ export default function ImageUploader({
   className = "",
   multiple = false,
 }: ImageUploaderProps) {
-  const [urlText, setUrlText] = useState(() => (value && !value.startsWith("data:") ? value : ""));
+  const urlText = value && !value.startsWith("data:") ? value : "";
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +45,6 @@ export default function ImageUploader({
 
   const handleUrlValue = (rawValue: string) => {
     const nextValue = rawValue.trim();
-    setUrlText(nextValue);
     setError(null);
 
     if (!nextValue) {
@@ -73,21 +72,18 @@ export default function ImageUploader({
     const nextImages = imageFields(urlText);
     nextImages[index] = nextImage.trim();
     const nextValue = nextImages.join(",");
-    setUrlText(nextValue);
     setError(null);
     onChange(nextValue);
   };
 
   const addImageUrlField = () => {
     const nextValue = [...imageFields(urlText), ""].join(",");
-    setUrlText(nextValue);
     onChange(nextValue);
   };
 
   const removeImageUrl = (index: number) => {
     const nextImages = imageFields(urlText).filter((_, imageIndex) => imageIndex !== index);
     const nextValue = nextImages.join(",");
-    setUrlText(nextValue);
     onChange(nextValue);
   };
 
@@ -118,7 +114,6 @@ export default function ImageUploader({
       const nextValue = multiple
         ? [...imageValues(value), ...uploadedUrls].join(",")
         : uploadedUrls[0];
-      setUrlText(nextValue);
       onChange(nextValue);
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Image upload failed.");
@@ -193,7 +188,6 @@ export default function ImageUploader({
             onChange={(e) => handleUrlValue(e.target.value)}
             onBlur={() => {
               const trimmed = urlText.trim();
-              setUrlText(trimmed);
               if (trimmed && !trimmed.startsWith("data:") && !isLikelyHttpUrl(trimmed)) setError("Please enter a valid image URL starting with http:// or https://");
               onChange(trimmed);
             }}

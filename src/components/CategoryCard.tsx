@@ -14,6 +14,22 @@ import {
   hydrateSiteContent,
 } from "@/lib/site-content";
 
+const ACCESSORIES_CATEGORY: AdminCategory = {
+  id: "cat-accessories",
+  name: "Accessories",
+  description: "Cases and essentials to care for your eyewear.",
+  image: "https://images.unsplash.com/photo-1632986636900-a57d247122a2?q=80&w=900&auto=format&fit=crop",
+  slug: "accessories",
+};
+
+const TURBAN_FRAME_CATEGORY: AdminCategory = {
+  id: "cat-turban-frame",
+  name: "Turban Frame",
+  description: "Comfortable frames designed to fit your style.",
+  image: "https://images.unsplash.com/photo-1762331221584-bb856812681e?q=80&w=900&auto=format&fit=crop",
+  slug: "turban-frame",
+};
+
 export default function OpticalCategories() {
   const router = useRouter();
   const [categories, setCategories] = useState<AdminCategory[]>([]);
@@ -26,6 +42,7 @@ export default function OpticalCategories() {
       sunglasses: "/sunglasses",
       "contact lens": "/contact-lens",
       "contact lense": "/contact-lens",
+      accessories: "/shop?category=Accessories",
     };
 
     return (
@@ -36,12 +53,23 @@ export default function OpticalCategories() {
 
   useEffect(() => {
     const syncCategories = (nextCategories: AdminCategory[]) => {
-      setCategories(nextCategories);
+      const categoriesWithAccessories = nextCategories.some(
+        (category) => category.name.trim().toLowerCase() === "accessories"
+      )
+        ? nextCategories
+        : [...nextCategories, ACCESSORIES_CATEGORY];
+      const categoriesWithTurbanFrame = categoriesWithAccessories.some(
+        (category) => category.name.trim().toLowerCase() === "turban frame"
+      )
+        ? categoriesWithAccessories
+        : [...categoriesWithAccessories, TURBAN_FRAME_CATEGORY];
+
+      setCategories(categoriesWithTurbanFrame);
 
       setActive((current) =>
-        nextCategories.some((category) => category.id === current)
+        categoriesWithTurbanFrame.some((category) => category.id === current)
           ? current
-          : nextCategories[0]?.id ?? null
+          : categoriesWithTurbanFrame[0]?.id ?? null
       );
     };
 
@@ -144,12 +172,10 @@ export default function OpticalCategories() {
   return (
     <section className="w-full bg-[#f7f7f5] py-3">
       <div className=" px-5 sm:px-8 lg:px-12">
-
         {/* Desktop Slider Controls */}
         {shouldUseSlider && (
           <div className="mb-2 flex items-center justify-end">
             <div className="hidden items-center gap-2 sm:flex">
-
               <button
                 type="button"
                 onClick={scrollPrev}
@@ -390,26 +416,12 @@ function CategoryCard({
       </div>
 
       {/* Product image */}
-      <div className="absolute inset-x-0 top-[28px] z-10 flex h-[94px] items-center justify-center px-5">
-
-        {/* Image glow */}
-        <div
-          className={`absolute h-[86px] w-[86px] rounded-full bg-white/55 blur-xl transition-all duration-700 ${
-            isActive
-              ? "scale-125 opacity-100"
-              : "opacity-70 group-hover:scale-125"
-          }`}
-        />
-
+      <div className="absolute inset-x-0 top-0 h-full z-10 flex items-center justify-center">
         <img
           src={category.image}
           alt={category.name}
           loading="lazy"
-          className={`relative z-10 h-full max-h-[94px] w-auto max-w-[86%] object-contain drop-shadow-[0_10px_12px_rgba(0,0,0,0.12)] transition-all duration-700 ease-out ${
-            isActive
-              ? "scale-[1.1] -rotate-1"
-              : "group-hover:scale-[1.14] group-hover:rotate-2"
-          }`}
+          className="relative z-10 h-full w-full object-cover drop-shadow-[0_10px_12px_rgba(0,0,0,0.12)]"
         />
 
       </div>

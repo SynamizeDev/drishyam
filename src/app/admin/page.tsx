@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -49,7 +49,7 @@ import {
   clearAllCatalogProducts,
   restoreDefaultCatalogProducts,
 } from "@/data/products";
-import type { Product } from "@/types/product";
+import { ACCESSORY_SUBCATEGORIES, type AccessorySubcategory, type Product } from "@/types/product";
 import { frameTypeOptions, getProductFrameType } from "@/lib/frame-type";
 import {
   DEFAULT_SITE_CONTENT,
@@ -143,6 +143,7 @@ const defaultSale = {
 const defaultNewProduct = {
   name: "", slug: "", price: "", image: "", description: "",
   category: "Eyeglasses" as Product["category"],
+  accessoryCategory: ACCESSORY_SUBCATEGORIES[0] as AccessorySubcategory,
   shape: "Rectangle" as Product["shape"],
   frameType: "Sheet Frames" as Product["frameType"],
   gender: "Unisex" as Product["gender"],
@@ -305,7 +306,11 @@ export default function AdminPage() {
   }, [router]);
 
   /* ── State ── */
-  const [content, setContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
+  const [content, setContentState] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
+  const setContent: React.Dispatch<React.SetStateAction<SiteContent>> = useCallback((nextContent) => {
+    hasLocalContentEditsRef.current = true;
+    setContentState(nextContent);
+  }, []);
   const [productList, setProductList] = useState<Product[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
   const [prescriptionSubmissions, setPrescriptionSubmissions] = useState<PrescriptionSubmission[]>([]);
@@ -327,19 +332,20 @@ export default function AdminPage() {
   const [newLensConfiguration, setNewLensConfiguration] = useState<ProductLensConfiguration>(emptyLensConfiguration());
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editingProductDraft, setEditingProductDraft] = useState<Product | null>(null);
+  const hasLocalContentEditsRef = useRef(false);
 
   /* ── Hydrate ── */
   useEffect(() => {
-    setContent(getSiteContent());
+    setContentState(getSiteContent());
     setProductList(getStoredProducts());
     setLeads(getOnboardingLeads());
     void getPrescriptionSubmissions().then(setPrescriptionSubmissions);
     setIsHydrated(true);
     void Promise.all([hydrateSiteContent(), hydrateProducts()]).then(([remoteContent, remoteProducts]) => {
-      setContent(remoteContent);
+      setContentState((currentContent) => hasLocalContentEditsRef.current ? currentContent : remoteContent);
       setProductList(remoteProducts);
     });
-  }, []);
+  }, [setContent]);
 
   useEffect(() => {
     const sync = () => {
@@ -373,7 +379,14 @@ export default function AdminPage() {
   const totalCustomers = leads.length;
 
   const categoryOptions = useMemo(
-    () => content.categories.length > 0 ? content.categories.map((c) => c.name) : ["Eyeglasses", "Sunglasses", "Blue Light", "Prescription Ready"],
+    () => {
+      const categories = content.categories.length > 0
+        ? content.categories.map((category) => category.name)
+        : ["Eyeglasses", "Sunglasses", "Blue Light", "Prescription Ready"];
+      return categories.some((category) => category.toLowerCase() === "accessories")
+        ? categories
+        : [...categories, "Accessories"];
+    },
     [content.categories]
   );
 
@@ -397,7 +410,7 @@ export default function AdminPage() {
       saveSiteContent(nextContent);
       return nextContent;
     });
-  }, []);
+  }, [setContent]);
 
   const toggleCategoryProducts = useCallback((category: SiteContent["categories"][number], productId: string) => {
     setContent((currentContent) => {
@@ -417,7 +430,7 @@ export default function AdminPage() {
       saveSiteContent(nextContent);
       return nextContent;
     });
-  }, []);
+  }, [setContent]);
 
   /* ── Banner handlers ── */
   const updateHeroSlide = (i: number, field: string, value: string) =>
@@ -722,6 +735,7 @@ export default function AdminPage() {
       name,
       slug: slug.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
       category: newProduct.category,
+      accessoryCategory: newProduct.category === "Accessories" ? newProduct.accessoryCategory : undefined,
       shape: newProduct.shape,
       frameType: newProduct.frameType,
       price,
@@ -738,7 +752,9 @@ export default function AdminPage() {
       dimensions: "50-20-145",
       isBestSeller: newProduct.isBestSeller,
       isNew: newProduct.isNew,
-      lensConfiguration: newLensConfiguration.visionTypes.length > 0 ? newLensConfiguration : undefined,
+      lensConfiguration: newProduct.category === "Accessories"
+        ? { enabled: false, visionTypes: [] }
+        : newLensConfiguration.visionTypes.length > 0 ? newLensConfiguration : undefined,
     };
     const updated = [...productList, product];
     saveProducts(updated);
@@ -1430,6 +1446,18 @@ export default function AdminPage() {
                             {categoryOptions.map((o) => <option key={o}>{o}</option>)}
                           </select>
                         </label>
+                        {newProduct.category === "Accessories" && (
+                          <label className="block">
+                            <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Accessory category</span>
+                            <select
+                              value={newProduct.accessoryCategory}
+                              onChange={(event) => setNewProduct((product) => ({ ...product, accessoryCategory: event.target.value as typeof ACCESSORY_SUBCATEGORIES[number] }))}
+                              className={fieldClass}
+                            >
+                              {ACCESSORY_SUBCATEGORIES.map((category) => <option key={category}>{category}</option>)}
+                            </select>
+                          </label>
+                        )}
                         <label className="block">
                           <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Price (₹) *</span>
                           <input
@@ -1660,7 +1688,10 @@ export default function AdminPage() {
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Product name</span><input value={editingProductDraft.name} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, name: event.target.value })} className={fieldClass} /></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">URL slug</span><input value={editingProductDraft.slug} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, slug: event.target.value })} className={fieldClass} /></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Price (₹)</span><input type="number" min="0" value={editingProductDraft.price} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, price: Number(event.target.value) || 0 })} className={fieldClass} /></label>
-                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Category</span><select value={editingProductDraft.category} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, category: event.target.value })} className={fieldClass}>{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Category</span><select value={editingProductDraft.category} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, category: event.target.value, accessoryCategory: event.target.value === "Accessories" ? editingProductDraft.accessoryCategory ?? ACCESSORY_SUBCATEGORIES[0] : undefined })} className={fieldClass}>{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
+                                  {editingProductDraft.category === "Accessories" && (
+                                    <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Accessory category</span><select value={editingProductDraft.accessoryCategory ?? ACCESSORY_SUBCATEGORIES[0]} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, accessoryCategory: event.target.value as typeof ACCESSORY_SUBCATEGORIES[number] })} className={fieldClass}>{ACCESSORY_SUBCATEGORIES.map((category) => <option key={category}>{category}</option>)}</select></label>
+                                  )}
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Gender</span><select value={editingProductDraft.gender} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, gender: event.target.value as Product["gender"] })} className={fieldClass}>{["Men", "Women", "Kids", "Unisex"].map((gender) => <option key={gender}>{gender}</option>)}</select></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Shape</span><select value={editingProductDraft.shape} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, shape: event.target.value })} className={fieldClass}>{["Oval", "Round", "Square", "Heart", "Diamond", "Rectangle", "Aviator", "Geometric", "Cat-Eye"].map((shape) => <option key={shape}>{shape}</option>)}</select></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Frame Type</span><select value={editingProductDraft.frameType ?? getProductFrameType(editingProductDraft) ?? "Sheet Frames"} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, frameType: event.target.value as Product["frameType"] })} className={fieldClass}>{frameTypeOptions.map((frameType) => <option key={frameType}>{frameType}</option>)}</select></label>
@@ -2028,6 +2059,9 @@ export default function AdminPage() {
                       <label className="block">
                         <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Phone Contact Number</span>
                         <input
+                          type="tel"
+                          inputMode="tel"
+                          autoComplete="tel"
                           value={content.store.phone}
                           onChange={(e) => updateStoreCard("phone", e.target.value)}
                           className={fieldClass}
@@ -2045,7 +2079,7 @@ export default function AdminPage() {
                           </div>
                           <div className="space-y-2">
                             {(content.store.inquiryOptions ?? []).map((option, index) => (
-                              <div key={`${option}-${index}`} className="flex items-center gap-2">
+                              <div key={index} className="flex items-center gap-2">
                                 <input value={option} onChange={(e) => updateInquiryOption(index, e.target.value)} className={fieldClass} />
                                 <button type="button" onClick={() => removeInquiryOption(index)} className="rounded-lg p-2 text-red-500 hover:bg-red-50" aria-label={`Remove ${option}`}>
                                   <Trash2 className="h-4 w-4" />
@@ -2360,6 +2394,9 @@ export default function AdminPage() {
                       <label className="block">
                         <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Phone</span>
                         <input
+                          type="tel"
+                          inputMode="tel"
+                          autoComplete="tel"
                           value={newSale.phone}
                           onChange={(e) => setNewSale((s) => ({ ...s, phone: e.target.value }))}
                           className={fieldClass}
