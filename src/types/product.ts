@@ -87,6 +87,8 @@ export interface PrescriptionSubmission {
 
 import type { StaticImageData } from "next/image";
 
+export type FrameType = "Rimless Frames" | "Sheet Frames" | "Metal Frames";
+
 export interface Product {
   id: string;
   name: string;
@@ -101,6 +103,7 @@ export interface Product {
   images: Array<string | StaticImageData>; // At least 2 images for hover effect
   gender: "Men" | "Women" | "Kids" | "Unisex";
   material: "Acetate" | "Titanium" | "Metal" | "Eco-Friendly";
+  frameType?: FrameType;
   size: "Small" | "Medium" | "Large";
   prescription: boolean;
   description: string;

@@ -3,11 +3,19 @@ import { supabase } from "@/lib/supabase";
 
 const PRODUCT_STORAGE_KEY = "drishyam_products";
 
-function createFocalVisionType(image: string): NonNullable<Product["lensConfiguration"]>["visionTypes"][number] {
+const visionTypeImages = {
+  "zero-power": "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?q=80&w=800&auto=format&fit=crop",
+  "single-vision": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop",
+  bifocal: "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?q=80&w=800&auto=format&fit=crop",
+  progressive: "https://images.unsplash.com/photo-1508296695146-257a814070b4?q=80&w=800&auto=format&fit=crop",
+  photochromic: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=800&auto=format&fit=crop",
+};
+
+function createBifocalVisionType(): NonNullable<Product["lensConfiguration"]>["visionTypes"][number] {
   return {
     id: "focal",
-    name: "Focal",
-    image,
+    name: "Bifocal",
+    image: visionTypeImages.bifocal,
     description: "Choose the viewing distance that suits your daily routine.",
     lensOptions: [
       { id: "focal-near", name: "Near Focal", price: 800, description: "Optimized for reading and close-up work." },
@@ -20,29 +28,37 @@ function createFocalVisionType(image: string): NonNullable<Product["lensConfigur
 
 function ensureFocalVisionType(product: Product): Product {
   const lensConfiguration = product.lensConfiguration;
-  if (!lensConfiguration || lensConfiguration.visionTypes.some((vision) => vision.id === "focal")) return product;
+  if (!lensConfiguration) return product;
 
-  const image = typeof product.images[0] === "string" ? product.images[0] : product.images[0]?.src ?? "";
+  if (lensConfiguration.visionTypes.some((vision) => vision.id === "focal")) {
+    return {
+      ...product,
+      lensConfiguration: {
+        ...lensConfiguration,
+        visionTypes: lensConfiguration.visionTypes.map((vision) =>
+          vision.id === "focal" ? { ...vision, name: "Bifocal" } : vision,
+        ),
+      },
+    };
+  }
+
   return {
     ...product,
     lensConfiguration: {
       ...lensConfiguration,
-      visionTypes: [...lensConfiguration.visionTypes, createFocalVisionType(image)],
+      visionTypes: [...lensConfiguration.visionTypes, createBifocalVisionType()],
     },
   };
 }
 
-function createCatalogLensConfiguration(product: Product): Product["lensConfiguration"] {
-  const images = product.images.map((image) => typeof image === "string" ? image : image.src);
-  const image = (index: number) => images[index % images.length] ?? images[0] ?? "";
-
+function createCatalogLensConfiguration(): Product["lensConfiguration"] {
   return {
     enabled: true,
     visionTypes: [
       {
         id: "zero-power",
         name: "Zero Power",
-        image: image(0),
+        image: visionTypeImages["zero-power"],
         lensOptions: [
           { id: "clear-basic", name: "Clear Basic", price: 0, description: "Everyday clear lenses." },
           { id: "blue-light", name: "Blue Light Filter", price: 500, description: "Helps reduce screen glare." },
@@ -51,17 +67,17 @@ function createCatalogLensConfiguration(product: Product): Product["lensConfigur
       {
         id: "single-vision",
         name: "Single Vision",
-        image: image(1),
+        image: visionTypeImages["single-vision"],
         lensOptions: [
           { id: "single-standard", name: "Standard Single Vision", price: 800, description: "Prescription lenses for one viewing distance." },
           { id: "single-premium", name: "Premium Single Vision", price: 1200, description: "Thinner, lighter lenses with premium coating." },
         ],
       },
-      createFocalVisionType(image(1)),
+      createBifocalVisionType(),
       {
         id: "progressive",
         name: "Progressive",
-        image: image(0),
+        image: visionTypeImages.progressive,
         lensOptions: [{ id: "progressive-standard", name: "Standard Progressive", price: 1800, description: "Clear vision across viewing distances." }],
         corridors: [
           { id: "standard-corridor", name: "Standard Corridor", price: 0 },
@@ -72,7 +88,7 @@ function createCatalogLensConfiguration(product: Product): Product["lensConfigur
       {
         id: "photochromic",
         name: "Photochromic",
-        image: image(1),
+        image: visionTypeImages.photochromic,
         lensOptions: [{ id: "photochromic-clear", name: "Photochromic Clear to Grey", price: 1500, description: "Darkens outdoors and returns clear indoors." }],
       },
     ],
@@ -295,7 +311,7 @@ export const defaultProducts: Product[] = [
 ];
 
 defaultProducts.forEach((product) => {
-  if (!product.lensConfiguration) product.lensConfiguration = createCatalogLensConfiguration(product);
+  if (!product.lensConfiguration) product.lensConfiguration = createCatalogLensConfiguration();
   else Object.assign(product, ensureFocalVisionType(product));
 });
 
@@ -313,7 +329,7 @@ export function getStoredProducts(): Product[] {
       if (Array.isArray(parsed)) {
         return parsed.map((product) => ensureFocalVisionType({
           ...product,
-          lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(product),
+          lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(),
         }));
       }
     }
@@ -379,7 +395,7 @@ export async function hydrateProducts() {
 
   const remoteProducts = (data.products as Product[]).map((product) => ensureFocalVisionType({
     ...product,
-    lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(product),
+    lensConfiguration: product.lensConfiguration ?? createCatalogLensConfiguration(),
   }));
   products = remoteProducts;
   if (typeof window !== "undefined") {

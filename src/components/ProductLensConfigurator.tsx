@@ -9,6 +9,7 @@ import type {
   ProductConfigurationSelection,
   VisionTypeOption,
 } from "@/types/product";
+import { getProductFrameType } from "@/lib/frame-type";
 import { uploadPrescription } from "@/lib/prescription-uploads";
 
 interface Pricing {
@@ -53,11 +54,13 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
   const lens = vision?.lensOptions.find((item) => item.id === selection.lensType);
   const corridor = vision?.corridors?.find((item) => item.id === selection.corridor);
   const additionalOptions = configuration.additionalOptions ?? [];
+  const isRimlessFrame = getProductFrameType(product) === "Rimless Frames";
   const visionOptions = {
     ...defaultVisionOptions,
     zeroPowerOptions: configuration.zeroPowerOptions?.length ? configuration.zeroPowerOptions : defaultVisionOptions.zeroPowerOptions,
     prescriptionTypes: configuration.prescriptionTypes?.length ? configuration.prescriptionTypes : defaultVisionOptions.prescriptionTypes,
-    lensMaterials: configuration.lensMaterials?.length ? configuration.lensMaterials : defaultVisionOptions.lensMaterials,
+    lensMaterials: (configuration.lensMaterials?.length ? configuration.lensMaterials : defaultVisionOptions.lensMaterials)
+      .filter((material) => isRimlessFrame || !/polycarbonate/i.test(material)),
     lensCoatings: configuration.lensCoatings?.length ? configuration.lensCoatings : defaultVisionOptions.lensCoatings,
     pdTypes: configuration.pdTypes?.length ? configuration.pdTypes : defaultVisionOptions.pdTypes,
     progressiveDesigns: configuration.progressiveDesigns?.length ? configuration.progressiveDesigns : defaultVisionOptions.progressiveDesigns,
@@ -261,7 +264,7 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
         <div className="space-y-5">
           <div>
             <h3 className="text-sm font-semibold text-charcoal">Select Your Vision Type</h3>
-            <div className="mt-3 grid grid-cols-3 gap-3">
+            <div className="mt-3 grid grid-cols-3 max-sm:gap-1   gap-3">
               {configuration.visionTypes.map((item) => (
                 <button
                   key={item.id}
@@ -272,8 +275,8 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
                   <div className="relative aspect-[4/3] bg-beige-50">
                     <Image src={item.image} alt="" fill unoptimized className="object-cover" sizes="(max-width: 640px) 45vw, 220px" />
                   </div>
-                  <div className="p-3">
-                    <p className="text-sm font-semibold text-charcoal">{item.name}</p>
+                  <div className="max-sm:p-2 p-3">
+                    <p className="max-sm:text-[10px] text-sm font-semibold text-charcoal">{item.name}</p>
                     {/* {item.description && <p className="mt-1 text-xs leading-5 text-charcoal/55">{item.description}</p>} */}
                   </div>
                 </button>

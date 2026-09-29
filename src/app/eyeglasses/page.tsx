@@ -10,6 +10,7 @@ import MobileMenu from "@/components/MobileMenu";
 import CartDrawer from "@/components/CartDrawer";
 import { getStoredProducts, hydrateProducts, defaultProducts as initialProducts } from "@/data/products";
 import { getCategoryProductIds, getSiteContent, hydrateSiteContent } from "@/lib/site-content";
+import { frameTypeOptions, getProductFrameType } from "@/lib/frame-type";
 import { Product } from "@/types/product";
 import { SlidersHorizontal, ChevronDown, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -81,15 +82,12 @@ function EyeglassesContent() {
           product.shape?.toLowerCase() === filters.shape.toLowerCase()
       );
     }
-    if (filters.material) {
-      otherProducts = otherProducts.filter(
-        (product) =>
-          product.material?.toLowerCase() === filters.material.toLowerCase()
-      );
-    }
-
     // Combine: assigned products first, then other products
     let filtered = [...assignedProducts, ...otherProducts];
+
+    if (filters.material) {
+      filtered = filtered.filter((product) => getProductFrameType(product) === filters.material);
+    }
 
     // Apply sorting to all products
     if (sortBy === "price-low") {
@@ -140,6 +138,8 @@ function EyeglassesContent() {
                 resetFilters={handleResetFilters}
                 isOpen={isMobileFiltersOpen}
                 setOpen={setMobileFiltersOpen}
+                materialOptions={[...frameTypeOptions]}
+                materialHeading="Frame Type"
               />
             </div>
 
@@ -204,6 +204,8 @@ function EyeglassesContent() {
                     resetFilters={handleResetFilters}
                     isOpen={isMobileFiltersOpen}
                     setOpen={setMobileFiltersOpen}
+                    materialOptions={[...frameTypeOptions]}
+                    materialHeading="Frame Type"
                   />
                 </div>
               )}

@@ -50,6 +50,7 @@ import {
   restoreDefaultCatalogProducts,
 } from "@/data/products";
 import type { Product } from "@/types/product";
+import { frameTypeOptions, getProductFrameType } from "@/lib/frame-type";
 import {
   DEFAULT_SITE_CONTENT,
   getOnboardingLeads,
@@ -143,6 +144,7 @@ const defaultNewProduct = {
   name: "", slug: "", price: "", image: "", description: "",
   category: "Eyeglasses" as Product["category"],
   shape: "Rectangle" as Product["shape"],
+  frameType: "Sheet Frames" as Product["frameType"],
   gender: "Unisex" as Product["gender"],
   material: "Acetate" as Product["material"],
   size: "Medium" as Product["size"],
@@ -721,6 +723,7 @@ export default function AdminPage() {
       slug: slug.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
       category: newProduct.category,
       shape: newProduct.shape,
+      frameType: newProduct.frameType,
       price,
       rating: 4.8,
       reviewsCount: 0,
@@ -1460,6 +1463,16 @@ export default function AdminPage() {
                           </select>
                         </label>
                         <label className="block">
+                          <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Frame Type</span>
+                          <select
+                            value={newProduct.frameType}
+                            onChange={(event) => setNewProduct((product) => ({ ...product, frameType: event.target.value as Product["frameType"] }))}
+                            className={fieldClass}
+                          >
+                            {frameTypeOptions.map((frameType) => <option key={frameType}>{frameType}</option>)}
+                          </select>
+                        </label>
+                        <label className="block">
                           <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Gender</span>
                           <select
                             value={newProduct.gender}
@@ -1650,6 +1663,7 @@ export default function AdminPage() {
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Category</span><select value={editingProductDraft.category} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, category: event.target.value })} className={fieldClass}>{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Gender</span><select value={editingProductDraft.gender} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, gender: event.target.value as Product["gender"] })} className={fieldClass}>{["Men", "Women", "Kids", "Unisex"].map((gender) => <option key={gender}>{gender}</option>)}</select></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Shape</span><select value={editingProductDraft.shape} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, shape: event.target.value })} className={fieldClass}>{["Oval", "Round", "Square", "Heart", "Diamond", "Rectangle", "Aviator", "Geometric", "Cat-Eye"].map((shape) => <option key={shape}>{shape}</option>)}</select></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Frame Type</span><select value={editingProductDraft.frameType ?? getProductFrameType(editingProductDraft) ?? "Sheet Frames"} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, frameType: event.target.value as Product["frameType"] })} className={fieldClass}>{frameTypeOptions.map((frameType) => <option key={frameType}>{frameType}</option>)}</select></label>
                                   <label className="flex items-center gap-2 text-sm text-[#111111]/75"><input type="checkbox" checked={Boolean(editingProductDraft.isNew)} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, isNew: event.target.checked })} className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]" /> New Arrivals</label>
                                   <label className="flex items-center gap-2 text-sm text-[#111111]/75"><input type="checkbox" checked={Boolean(editingProductDraft.isBestSeller)} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, isBestSeller: event.target.checked })} className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]" /> Best Sellers</label>
                                   <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Product photo URLs (comma separated)</span><input value={editingProductDraft.images.map((image) => typeof image === "string" ? image : image.src).join(",")} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, images: event.target.value.split(",").map((image) => image.trim()).filter(Boolean) })} className={fieldClass} /></label>

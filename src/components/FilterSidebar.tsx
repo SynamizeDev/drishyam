@@ -16,6 +16,8 @@ interface FilterSidebarProps {
   resetFilters: () => void;
   isOpen: boolean; // For mobile drawer
   setOpen: (open: boolean) => void;
+  materialOptions?: string[];
+  materialHeading?: string;
 }
 
 const categories = ["Eyeglasses", "Sunglasses", "Blue Light"];
@@ -28,7 +30,9 @@ export default function FilterSidebar({
   setFilters,
   resetFilters,
   isOpen,
-  setOpen
+  setOpen,
+  materialOptions,
+  materialHeading = "Material",
 }: FilterSidebarProps) {
   
   const Content = () => (
@@ -104,9 +108,9 @@ export default function FilterSidebar({
 
       {/* Material */}
       <div className="space-y-2.5">
-        <h4 className="text-[14px] uppercase font-bold -wider text-charcoal/70">Material</h4>
+          <h4 className="text-[14px] uppercase font-bold -wider text-charcoal/70">{materialHeading}</h4>
         <div className="space-y-1.5">
-          {materials.map((m) => (
+          {(materialOptions ?? materials).map((m) => (
             <label key={m} className="flex items-center gap-2 text-sm text-charcoal/70 cursor-pointer hover:text-charcoal transition-colors">
               <input
                 type="radio"
