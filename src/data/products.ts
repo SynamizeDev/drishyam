@@ -212,6 +212,122 @@ function createAccessoryProducts(): Product[] {
 
 export const defaultProducts: Product[] = [
   {
+    id: "contact-lens-cl-solutions",
+    name: "CL Solutions",
+    slug: "cl-solutions",
+    category: "Contact Lens",
+    shape: "Round",
+    price: 399,
+    rating: 4.8,
+    reviewsCount: 124,
+    colors: [{ name: "Clear", hex: "#f4f1eb" }],
+    images: [
+      "https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=900&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=900&auto=format&fit=crop"
+    ],
+    gender: "Unisex",
+    material: "Not Applicable",
+    size: "Medium",
+    prescription: false,
+    description: "Gentle multi-purpose contact lens solution designed for daily cleaning, rinsing, and storage comfort.",
+    details: [
+      "Hydrating formula for daily lens comfort",
+      "Suitable for rinsing, storing, and cleaning lenses",
+      "Keeps lenses fresh and irritation-free",
+      "Travel-friendly bottle for everyday use"
+    ],
+    dimensions: "",
+    isBestSeller: true,
+    isNew: false,
+  },
+  {
+    id: "contact-lens-eye-glass-chain",
+    name: "Eye Glass Chain",
+    slug: "eye-glass-chain",
+    category: "Contact Lens",
+    shape: "Rectangle",
+    price: 349,
+    rating: 4.7,
+    reviewsCount: 83,
+    colors: [{ name: "Gold", hex: "#caa25d" }, { name: "Black", hex: "#111111" }],
+    images: [
+      "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?q=80&w=900&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=900&auto=format&fit=crop"
+    ],
+    gender: "Unisex",
+    material: "Metal",
+    size: "Medium",
+    prescription: false,
+    description: "Premium eyeglass chain that keeps your lenses and frames secure while adding a tailored finishing touch.",
+    details: [
+      "Secure fit for everyday wear",
+      "Lightweight and comfortable on the neck",
+      "Elegant finish for daily styling",
+      "Easy to wear across long workdays"
+    ],
+    dimensions: "",
+    isBestSeller: false,
+    isNew: true,
+  },
+  {
+    id: "contact-lens-anti-fog-microfiber-cleaning-cloth",
+    name: "Anti Fog Microfiber Cleaning Cloth",
+    slug: "anti-fog-microfiber-cleaning-cloth",
+    category: "Contact Lens",
+    shape: "Round",
+    price: 199,
+    rating: 4.9,
+    reviewsCount: 96,
+    colors: [{ name: "Silver Grey", hex: "#c7ced8" }],
+    images: [
+      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=900&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=900&auto=format&fit=crop"
+    ],
+    gender: "Unisex",
+    material: "Not Applicable",
+    size: "Medium",
+    prescription: false,
+    description: "Ultra-soft microfiber cloth that helps reduce fog and keeps lenses and glasses spotless without scratches.",
+    details: [
+      "Anti-fog performance for quick cleaning",
+      "Microfiber texture with lint-free finish",
+      "Safe for eyewear and lens surfaces",
+      "Portable and reusable for daily care"
+    ],
+    dimensions: "",
+    isBestSeller: true,
+    isNew: false,
+  },
+  {
+    id: "contact-lens-cleaner",
+    name: "Lens Cleaner",
+    slug: "lens-cleaner",
+    category: "Contact Lens",
+    shape: "Square",
+    price: 249,
+    rating: 4.8,
+    reviewsCount: 110,
+    colors: [{ name: "Blue", hex: "#67a3d9" }, { name: "White", hex: "#f8f8f8" }],
+    images: [
+      "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?q=80&w=900&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=900&auto=format&fit=crop"
+    ],
+    gender: "Unisex",
+    material: "Not Applicable",
+    size: "Medium",
+    prescription: false,
+    description: "Quick-dry lens cleaner formulated to remove smudges and debris while keeping vision crystal clear.",
+    details: [
+      "Effective against smudges and dust",
+      "Leaves lenses sparkling without residue",
+      "Fast drying and easy spray use",
+      "Designed for everyday eyewear care"
+    ],
+    dimensions: "",
+    isBestSeller: false,
+    isNew: true,
+  },
+  {
     id: "frame-001",
     name: "Avery Classic",
     slug: "avery-classic",

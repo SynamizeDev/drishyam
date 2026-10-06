@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductGrid from "@/components/ProductGrid";
@@ -9,7 +9,7 @@ import SearchModal from "@/components/SearchModal";
 import MobileMenu from "@/components/MobileMenu";
 import CartDrawer from "@/components/CartDrawer";
 import { getStoredProducts, hydrateProducts, defaultProducts as initialProducts } from "@/data/products";
-import { getCategoryProductIds, getSiteContent, hydrateSiteContent } from "@/lib/site-content";
+import { getCategoryProductIds, getSiteContent, hydrateSiteContent, type SiteContent } from "@/lib/site-content";
 import { Product } from "@/types/product";
 import { SlidersHorizontal, ChevronDown, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -30,25 +30,26 @@ const initialFilters: Filters = {
 
 function ContactLensContent() {
   const [filters, setFilters] = useState<Filters>(initialFilters);
-  const [sortBy, setSortBy] = useState<string>("featured");
   const [allProductsList, setAllProductsList] = useState<Product[]>(initialProducts);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
   const [isMobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [showLensOptions, setShowLensOptions] = useState(false);
   const [selectedLensColor, setSelectedLensColor] = useState("black");
   const [prescription, setPrescription] = useState("");
   const [water, setWater] = useState("");
   const [baseCurve, setBaseCurve] = useState("");
-  const [siteContent, setSiteContent] = useState<any>(null);
+  const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
 
   const lensColors = ["Black", "Brown", "Blue", "Green", "Hazel", "Gray"];
 
   useEffect(() => {
     const sync = () => {
-      setAllProductsList(getStoredProducts());
+      const storedProducts = getStoredProducts();
+      setAllProductsList(storedProducts.length > 0 ? storedProducts : initialProducts);
       setSiteContent(getSiteContent());
     };
-    void hydrateProducts().then(setAllProductsList);
+    void hydrateProducts().then((products) => {
+      setAllProductsList(products.length > 0 ? products : initialProducts);
+    });
     void hydrateSiteContent().then(setSiteContent);
     window.addEventListener("storage", sync);
     window.addEventListener("drishyam:products-update", sync);
@@ -60,15 +61,15 @@ function ContactLensContent() {
     };
   }, []);
 
-  useEffect(() => {
-    // Separate assigned and other products
+  const baseProductList = allProductsList.length > 0 ? allProductsList : initialProducts;
+
+  const filteredProducts = useMemo(() => {
     const assignedIds = siteContent
       ? getCategoryProductIds(siteContent, "cat-contact-lens", "Contact Lens")
       : [];
-    const assignedProducts = allProductsList.filter(p => assignedIds.includes(p.id));
-    let otherProducts = allProductsList.filter(p => !assignedIds.includes(p.id));
+    const assignedProducts = baseProductList.filter((p) => assignedIds.includes(p.id));
+    let otherProducts = baseProductList.filter((p) => !assignedIds.includes(p.id));
 
-    // Apply filters to other products (but keep assigned products regardless)
     if (filters.category) {
       otherProducts = otherProducts.filter(
         (product) =>
@@ -76,7 +77,7 @@ function ContactLensContent() {
           product.category?.toLowerCase() === filters.category.toLowerCase()
       );
     }
-    
+
     if (filters.gender) {
       otherProducts = otherProducts.filter(
         (product) =>
@@ -96,18 +97,9 @@ function ContactLensContent() {
       );
     }
 
-    // Combine: assigned products first, then other products
-    let filtered = [...assignedProducts, ...otherProducts];
-
-    // Apply sorting to all products
-    if (sortBy === "price-low") {
-      filtered.sort((a, b) => a.price - b.price);
-    } else if (sortBy === "price-high") {
-      filtered.sort((a, b) => b.price - a.price);
-    }
-
-    setFilteredProducts(filtered);
-  }, [filters, allProductsList, sortBy, siteContent]);
+    const filtered = [...assignedProducts, ...otherProducts];
+    return filtered;
+  }, [baseProductList, filters, siteContent]);
 
   const handleResetFilters = () => {
     setFilters(initialFilters);

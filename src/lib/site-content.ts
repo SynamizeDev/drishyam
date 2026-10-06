@@ -312,11 +312,25 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   categoryProductIds: {
     "cat-eyeglasses": ["frame-001", "frame-003", "frame-005"],
     "cat-sunglasses": ["frame-002", "frame-004", "frame-008"],
-    "cat-contact-lens": ["frame-006", "frame-007"],
+    "cat-contact-lens": [
+      "contact-lens-cl-solutions",
+      "contact-lens-eye-glass-chain",
+      "contact-lens-anti-fog-microfiber-cleaning-cloth",
+      "contact-lens-cleaner",
+      "frame-006",
+      "frame-007",
+    ],
   },
   eyeglassesProductIds: ["frame-001", "frame-003", "frame-005"],
   sunglassesProductIds: ["frame-002", "frame-004", "frame-008"],
-  contactLensProductIds: ["frame-006", "frame-007"],
+  contactLensProductIds: [
+    "contact-lens-cl-solutions",
+    "contact-lens-eye-glass-chain",
+    "contact-lens-anti-fog-microfiber-cleaning-cloth",
+    "contact-lens-cleaner",
+    "frame-006",
+    "frame-007",
+  ],
   sales: [
     {
       id: "sale-1",

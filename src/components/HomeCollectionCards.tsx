@@ -21,7 +21,9 @@ export default function HomeCollectionCards() {
     };
   }, []);
 
-  if (cards.length === 0) return null;
+  const visibleCards = cards.filter((card) => ["Men", "Women", "Kids"].includes(card.title));
+
+  if (visibleCards.length === 0) return null;
 
   return (
     <section className="bg-[#f7f4ee] px-4 py-14 sm:px-6 sm:py-18 lg:px-8 lg:py-20">
@@ -36,16 +38,16 @@ export default function HomeCollectionCards() {
             </h2>
           </div>
           <span className="hidden text-xs uppercase tracking-[0.16em] text-[#211f1b]/45 sm:block">
-            Seven ways to see yourself
+            Three ways to see yourself
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-7">
-          {cards.map((card) => (
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+          {visibleCards.map((card) => (
             <Link
               key={card.id}
               href={card.href || "/shop"}
-              className="group relative aspect-[0.78] overflow-hidden rounded-[22px] bg-[#d9d2c7] shadow-[0_12px_30px_rgba(35,31,26,0.08)] transition duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(35,31,26,0.16)] sm:aspect-[0.72]"
+              className="group relative h-[130px] overflow-hidden rounded-[18px] bg-[#d9d2c7] shadow-[0_12px_30px_rgba(35,31,26,0.08)] transition duration-500 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(35,31,26,0.16)] sm:h-[170px] lg:h-[200px]"
             >
               <Image
                 src={card.image}
@@ -56,11 +58,11 @@ export default function HomeCollectionCards() {
                 className="object-cover transition duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4 text-white sm:p-5">
-                <div className="mb-2 h-px w-6 bg-[#f4c46d] transition-all duration-300 group-hover:w-10" />
-                <h3 className="text-base font-semibold uppercase tracking-[0.04em] sm:text-lg">{card.title}</h3>
-                <span className="mt-2 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.16em] text-white/75">
-                  Explore <ArrowUpRight className="h-3.5 w-3.5" />
+              <div className="absolute inset-x-0 bottom-0 p-3 text-white sm:p-4">
+                <div className="mb-2 h-px w-5 bg-[#f4c46d] transition-all duration-300 group-hover:w-8" />
+                <h3 className="text-sm font-semibold uppercase tracking-[0.04em] sm:text-base">{card.title}</h3>
+                <span className="mt-1 inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-[0.16em] text-white/75">
+                  Explore <ArrowUpRight className="h-3 w-3" />
                 </span>
               </div>
             </Link>

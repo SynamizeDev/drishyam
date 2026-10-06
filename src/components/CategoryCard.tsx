@@ -347,6 +347,9 @@ function CategoryCard({
     <button
       type="button"
       onClick={onClick}
+      onPointerDown={(event) => event.stopPropagation()}
+      onDragStart={(event) => event.preventDefault()}
+      draggable={false}
       className={`group relative w-full min-h-[178px] overflow-hidden rounded-[26px] border text-left transition-all duration-500 ${
         isActive
           ? "border-gray-950 shadow-[0_18px_42px_rgba(0,0,0,0.18)] -translate-y-1"

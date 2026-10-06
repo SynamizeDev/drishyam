@@ -30,6 +30,11 @@ const initialFilters: Filters = {
   accessoryCategory: "",
 };
 
+const normalizeCategory = (value: string) => {
+  const normalized = value.trim().toLowerCase().replace(/[\s_-]+/g, " ");
+  return normalized === "contact lenses" ? "contact lens" : normalized;
+};
+
 function ShopContent() {
   const searchParams = useSearchParams();
   const [filters, setFilters] = useState<Filters>(initialFilters);
@@ -58,7 +63,7 @@ function ShopContent() {
 
   // Sync state from query parameters on mount
   useEffect(() => {
-    const categoryQuery = searchParams.get("category") || "";
+    const categoryQuery = searchParams.get("category")?.trim() || "";
     const genderQuery = searchParams.get("gender") || "";
     const shapeQuery = searchParams.get("shape") || "";
     const accessoryCategoryQuery = searchParams.get("accessoryCategory") || "";
@@ -76,8 +81,8 @@ function ShopContent() {
   useEffect(() => {
     let result = [...allProductsList];
     const matchedCategory = siteContent?.categories.find((category) =>
-      category.name.toLowerCase() === filters.category.toLowerCase()
-      || category.slug.toLowerCase() === filters.category.toLowerCase()
+      normalizeCategory(category.name) === normalizeCategory(filters.category)
+      || normalizeCategory(category.slug) === normalizeCategory(filters.category)
     );
     const assignedIds = siteContent && matchedCategory
       ? getCategoryProductIds(siteContent, matchedCategory.id, matchedCategory.name)
@@ -86,7 +91,9 @@ function ShopContent() {
 
     // Filter by Category
     if (filters.category) {
-      result = result.filter((p) => p.category.toLowerCase() === filters.category.toLowerCase());
+      result = result.filter(
+        (product) => normalizeCategory(product.category) === normalizeCategory(filters.category)
+      );
     }
 
     if (filters.accessoryCategory) {
