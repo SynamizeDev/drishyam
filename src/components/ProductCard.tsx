@@ -153,6 +153,10 @@ interface ProductCardProps {
   product: Product;
 }
 
+function formatPrice(value: number) {
+  return `₹${value.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+}
+
 function WhatsAppIcon() {
   return (
     <svg
@@ -279,6 +283,14 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.name}
             </Link>
           </h3>
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
+            <span className="text-sm font-bold text-[#231f1a] sm:text-base">{formatPrice(product.price)}</span>
+            {product.originalPrice !== undefined && (
+              <span className="text-xs text-gray-500 line-through" aria-label="Old price">
+                {formatPrice(product.originalPrice)}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* EXISTING ACTIONS ONLY */}

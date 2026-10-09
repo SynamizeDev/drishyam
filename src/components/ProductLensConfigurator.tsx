@@ -365,6 +365,17 @@ export default function ProductLensConfigurator({ product, onChange }: ProductLe
       )}
 
       <div className="grid grid-cols-2 gap-3 rounded-2xl border border-beige-100 bg-beige-50/60 p-4 text-sm">
+        <div className="col-span-2 flex items-center justify-between gap-3 border-b border-beige-100 pb-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal/45">Frame price</p>
+          <div className="flex flex-wrap items-baseline justify-end gap-x-2">
+            <span className="font-semibold text-charcoal">{formatPrice(product.price)}</span>
+            {product.originalPrice !== undefined && (
+              <span className="text-xs text-gray-500 line-through" aria-label="Old price">
+                {formatPrice(product.originalPrice)}
+              </span>
+            )}
+          </div>
+        </div>
         <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal/45">Options amount</p><p className="mt-1 font-semibold text-charcoal">{formatPrice(selection.purchaseType === "frame-only" ? 0 : optionsAmount)}</p></div>
         <div className="text-right"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal/45">Final total</p><p className="mt-1 text-lg font-semibold text-charcoal">{formatPrice(selection.purchaseType === "frame-only" ? product.price : product.price + optionsAmount)}</p></div>
       </div>

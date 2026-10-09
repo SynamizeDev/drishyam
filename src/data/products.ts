@@ -4,6 +4,22 @@ import { supabase } from "@/lib/supabase";
 const PRODUCT_STORAGE_KEY = "drishyam_products";
 const ACCESSORY_LOCAL_MIGRATION_KEY = "drishyam_accessory_products_local_v2";
 const ACCESSORY_REMOTE_MIGRATION_KEY = "drishyam_accessory_products_remote_v2";
+const DEFAULT_OLD_PRICE_MARKUP = 0.2;
+
+export function getDefaultOriginalPrice(price: number) {
+  return Math.ceil((price * (1 + DEFAULT_OLD_PRICE_MARKUP)) / 10) * 10;
+}
+
+function withDefaultOriginalPrice(product: Product): Product {
+  if (typeof product.originalPrice === "number" && Number.isFinite(product.originalPrice) && product.originalPrice > 0) {
+    return product;
+  }
+
+  return {
+    ...product,
+    originalPrice: getDefaultOriginalPrice(product.price),
+  };
+}
 
 const visionTypeImages = {
   "zero-power": "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?q=80&w=800&auto=format&fit=crop",
@@ -631,6 +647,7 @@ export const defaultProducts: Product[] = [
 ];
 
 defaultProducts.forEach((product) => {
+  Object.assign(product, withDefaultOriginalPrice(product));
   if (!product.lensConfiguration) product.lensConfiguration = createCatalogLensConfiguration();
   else Object.assign(product, ensureFocalVisionType(product));
 });
@@ -659,10 +676,10 @@ export function getStoredProducts(): Product[] {
           }
         }
 
-        return migratedProducts.map((product) => ensureFocalVisionType({
+        return migratedProducts.map((product) => ensureFocalVisionType(withDefaultOriginalPrice({
           ...product,
           lensConfiguration: product.lensConfiguration ?? getDefaultLensConfiguration(product),
-        }));
+        })));
       }
     }
   } catch {
@@ -716,12 +733,13 @@ export function notifyProductsUpdate() {
 }
 
 export async function saveProducts(nextProducts: Product[]) {
-  products = nextProducts;
+  const productsWithOldPrices = nextProducts.map(withDefaultOriginalPrice);
+  products = productsWithOldPrices;
 
   if (typeof window !== "undefined") {
     window.localStorage.setItem(
       PRODUCT_STORAGE_KEY,
-      JSON.stringify(nextProducts)
+      JSON.stringify(productsWithOldPrices)
     );
     window.localStorage.setItem(ACCESSORY_LOCAL_MIGRATION_KEY, "true");
 
@@ -737,7 +755,7 @@ export async function saveProducts(nextProducts: Product[]) {
 
   const { error } = await supabase
     .from("site_data")
-    .upsert({ id: "main", products: nextProducts, updated_at: new Date().toISOString() }, { onConflict: "id" });
+    .upsert({ id: "main", products: productsWithOldPrices, updated_at: new Date().toISOString() }, { onConflict: "id" });
 
   if (error) throw error;
   if (typeof window !== "undefined") {
@@ -770,10 +788,10 @@ export async function hydrateProducts() {
     remoteProductData = migratedProducts;
   }
 
-  const remoteProducts = remoteProductData.map((product) => ensureFocalVisionType({
+  const remoteProducts = remoteProductData.map((product) => ensureFocalVisionType(withDefaultOriginalPrice({
     ...product,
     lensConfiguration: product.lensConfiguration ?? getDefaultLensConfiguration(product),
-  }));
+  })));
   products = remoteProducts;
   if (typeof window !== "undefined") {
     window.localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(remoteProducts));

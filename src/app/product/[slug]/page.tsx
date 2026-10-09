@@ -185,18 +185,22 @@ export default function ProductDetailPage({ params }: PageProps) {
   ];
 
   const dimensionValues = isAccessory ? [] : product.dimensions.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
-  const frameDimensions = dimensionValues.length >= 3
-    ? [
+  const frameDimensions = isAccessory ? [] : [
+        ...(dimensionValues.length >= 3
+          ? [
         { icon: Ruler, label: "Lens width", value: `${dimensionValues[0]} mm` },
         { icon: ArrowLeftRight, label: "Bridge", value: `${dimensionValues[1]} mm` },
         { icon: MoveHorizontal, label: "Temple length", value: `${dimensionValues[2]} mm` },
-        {
-          icon: Glasses,
-          label: "Frame width (approx.)",
-          value: `${dimensionValues[0] * 2 + dimensionValues[1] + 10} mm`,
-        },
-      ]
-    : [];
+          ]
+          : []),
+        ...(product.frameWidth !== undefined || dimensionValues.length >= 3
+          ? [{
+              icon: Glasses,
+              label: "Frame width (approx.)",
+              value: `${product.frameWidth ?? dimensionValues[0] * 2 + dimensionValues[1] + 10} mm`,
+            }]
+          : []),
+      ];
 
   return (
     <>

@@ -42,6 +42,7 @@ import {
   Pencil,
 } from "lucide-react";
 import {
+  getDefaultOriginalPrice,
   getStoredProducts,
   hydrateProducts,
   saveProducts,
@@ -140,8 +141,40 @@ const defaultSale = {
   date: "",
 };
 
+type ProductDimensionFields = {
+  lensWidth: string;
+  bridge: string;
+  templeLength: string;
+  frameWidth: string;
+};
+
+const emptyProductDimensionFields = (): ProductDimensionFields => ({
+  lensWidth: "",
+  bridge: "",
+  templeLength: "",
+  frameWidth: "",
+});
+
+const getProductDimensionFields = (product: Product): ProductDimensionFields => {
+  const dimensions = product.dimensions.match(/\d+(?:\.\d+)?/g) ?? [];
+  return {
+    lensWidth: dimensions[0] ?? "",
+    bridge: dimensions[1] ?? "",
+    templeLength: dimensions[2] ?? "",
+    frameWidth: product.frameWidth?.toString() ?? "",
+  };
+};
+
+const serializeProductDimensions = (fields: ProductDimensionFields): string | null => {
+  const values = [fields.lensWidth, fields.bridge, fields.templeLength].map((value) => value.trim());
+  if (values.every((value) => value === "")) return "";
+  if (values.some((value) => !value || !Number.isFinite(Number(value)) || Number(value) <= 0)) return null;
+  return values.join("-");
+};
+
 const defaultNewProduct = {
-  name: "", slug: "", price: "", image: "", description: "",
+  name: "", slug: "", price: "", originalPrice: "", image: "", description: "",
+  lensWidth: "", bridge: "", templeLength: "", frameWidth: "",
   category: "Eyeglasses" as Product["category"],
   accessoryCategory: ACCESSORY_SUBCATEGORIES[0] as AccessorySubcategory,
   shape: "Rectangle" as Product["shape"],
@@ -332,6 +365,7 @@ export default function AdminPage() {
   const [newLensConfiguration, setNewLensConfiguration] = useState<ProductLensConfiguration>(emptyLensConfiguration());
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editingProductDraft, setEditingProductDraft] = useState<Product | null>(null);
+  const [editingDimensionFields, setEditingDimensionFields] = useState<ProductDimensionFields>(emptyProductDimensionFields());
   const hasLocalContentEditsRef = useRef(false);
 
   /* ── Hydrate ── */
@@ -715,13 +749,18 @@ export default function AdminPage() {
     const name = newProduct.name.trim();
     const slug = newProduct.slug.trim();
     const price = Number(newProduct.price);
+    const originalPrice = newProduct.originalPrice.trim()
+      ? Number(newProduct.originalPrice)
+      : getDefaultOriginalPrice(price);
+    const dimensions = serializeProductDimensions(newProduct);
+    const frameWidth = newProduct.frameWidth.trim() ? Number(newProduct.frameWidth) : undefined;
     const imageUrls = newProduct.image
       .split(",")
       .map((value) => value.trim())
       .filter(Boolean);
 
-    if (!name || !slug || imageUrls.length === 0 || !Number.isFinite(price) || price <= 0) {
-      setToastMessage("Please fill in all required fields (Name, Slug, Image, Price). Use one or more direct image URLs separated by commas.");
+    if (!name || !slug || imageUrls.length === 0 || !Number.isFinite(price) || price <= 0 || !Number.isFinite(originalPrice) || originalPrice <= 0 || dimensions === null || (frameWidth !== undefined && (!Number.isFinite(frameWidth) || frameWidth <= 0))) {
+      setToastMessage("Check required product details and enter all three lens dimensions, or leave all three blank. Frame width must be positive when entered.");
       return;
     }
 
@@ -739,6 +778,7 @@ export default function AdminPage() {
       shape: newProduct.shape,
       frameType: newProduct.frameType,
       price,
+      originalPrice,
       rating: 4.8,
       reviewsCount: 0,
       colors: [{ name: "Default", hex: "#111111" }],
@@ -749,7 +789,8 @@ export default function AdminPage() {
       prescription: newProduct.prescription,
       description: newProduct.description.trim() || "Quality product from Drishyam Optical.",
       details: ["Added from admin dashboard", "Ready for sale"],
-      dimensions: "50-20-145",
+      dimensions,
+      frameWidth,
       isBestSeller: newProduct.isBestSeller,
       isNew: newProduct.isNew,
       lensConfiguration: newProduct.category === "Accessories"
@@ -788,6 +829,7 @@ export default function AdminPage() {
     setEditingLensProductId(null);
     setEditingProductId(product.id);
     setEditingProductDraft({ ...product });
+    setEditingDimensionFields(getProductDimensionFields(product));
   };
 
   const saveProductEdit = () => {
@@ -798,8 +840,18 @@ export default function AdminPage() {
       setToastMessage("Product name, slug, and a valid price are required.");
       return;
     }
+    if (editingProductDraft.originalPrice === undefined || !Number.isFinite(editingProductDraft.originalPrice) || editingProductDraft.originalPrice <= 0) {
+      setToastMessage("Old price is required and must be greater than zero.");
+      return;
+    }
+    const dimensions = serializeProductDimensions(editingDimensionFields);
+    const frameWidth = editingDimensionFields.frameWidth.trim() ? Number(editingDimensionFields.frameWidth) : undefined;
+    if (dimensions === null || (frameWidth !== undefined && (!Number.isFinite(frameWidth) || frameWidth <= 0))) {
+      setToastMessage("Enter all three lens dimensions as positive numbers, or leave all three blank. Frame width must be positive when entered.");
+      return;
+    }
     const updated = productList.map((product) => product.id === editingProductDraft.id
-      ? { ...editingProductDraft, name, slug }
+      ? { ...editingProductDraft, name, slug, dimensions, frameWidth }
       : product);
     void saveProducts(updated);
     setProductList(updated);
@@ -1469,6 +1521,27 @@ export default function AdminPage() {
                             className={fieldClass}
                           />
                         </label>
+                        <label className="block">
+                          <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Old Price (₹)</span>
+                          <input
+                            type="number"
+                            min="1"
+                            placeholder="Crossed-out previous price"
+                            value={newProduct.originalPrice}
+                            onChange={(event) => setNewProduct((product) => ({ ...product, originalPrice: event.target.value }))}
+                            className={fieldClass}
+                          />
+                          <span className="mt-1 block text-xs text-[#111111]/45">Leave blank to default to 20% above the current price, rounded up to the next ₹10.</span>
+                        </label>
+                        <div className="sm:col-span-2">
+                          <p className="mb-2 text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Frame Dimensions (mm)</p>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <label className="block"><span className="text-xs text-[#111111]/55">Lens width</span><input type="number" min="1" step="any" placeholder="50" value={newProduct.lensWidth} onChange={(event) => setNewProduct((product) => ({ ...product, lensWidth: event.target.value }))} className={fieldClass} /></label>
+                            <label className="block"><span className="text-xs text-[#111111]/55">Bridge</span><input type="number" min="1" step="any" placeholder="20" value={newProduct.bridge} onChange={(event) => setNewProduct((product) => ({ ...product, bridge: event.target.value }))} className={fieldClass} /></label>
+                            <label className="block"><span className="text-xs text-[#111111]/55">Temple length</span><input type="number" min="1" step="any" placeholder="145" value={newProduct.templeLength} onChange={(event) => setNewProduct((product) => ({ ...product, templeLength: event.target.value }))} className={fieldClass} /></label>
+                            <label className="block"><span className="text-xs text-[#111111]/55">Frame width (approx.)</span><input type="number" min="1" step="any" placeholder="130" value={newProduct.frameWidth} onChange={(event) => setNewProduct((product) => ({ ...product, frameWidth: event.target.value }))} className={fieldClass} /></label>
+                          </div>
+                        </div>
 
                         {/* Image Uploader */}
                         <ImageUploader
@@ -1626,7 +1699,7 @@ export default function AdminPage() {
                       </p>
                     </div>
                   ) : (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2 items-start">
+                    <div className="grid max-h-[70vh] gap-4 overflow-y-auto overscroll-contain pr-2 sm:grid-cols-2 lg:grid-cols-2 items-start">
                       {filteredCatalogProducts.map((p) => {
                         const img = typeof p.images[0] === "string" ? p.images[0] : (p.images[0] as any)?.src;
                         const isEditingLensConfiguration = editingLensProductId === p.id;
@@ -1688,6 +1761,16 @@ export default function AdminPage() {
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Product name</span><input value={editingProductDraft.name} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, name: event.target.value })} className={fieldClass} /></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">URL slug</span><input value={editingProductDraft.slug} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, slug: event.target.value })} className={fieldClass} /></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Price (₹)</span><input type="number" min="0" value={editingProductDraft.price} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, price: Number(event.target.value) || 0 })} className={fieldClass} /></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Old Price (₹) *</span><input type="number" min="1" required value={editingProductDraft.originalPrice ?? ""} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, originalPrice: event.target.value === "" ? undefined : Number(event.target.value) })} className={fieldClass} /></label>
+                                  <div className="sm:col-span-2">
+                                    <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Frame dimensions (mm)</p>
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                      <label className="block"><span className="text-xs text-[#111111]/55">Lens width</span><input type="number" min="1" step="any" value={editingDimensionFields.lensWidth} onChange={(event) => setEditingDimensionFields((fields) => ({ ...fields, lensWidth: event.target.value }))} className={fieldClass} /></label>
+                                      <label className="block"><span className="text-xs text-[#111111]/55">Bridge</span><input type="number" min="1" step="any" value={editingDimensionFields.bridge} onChange={(event) => setEditingDimensionFields((fields) => ({ ...fields, bridge: event.target.value }))} className={fieldClass} /></label>
+                                      <label className="block"><span className="text-xs text-[#111111]/55">Temple length</span><input type="number" min="1" step="any" value={editingDimensionFields.templeLength} onChange={(event) => setEditingDimensionFields((fields) => ({ ...fields, templeLength: event.target.value }))} className={fieldClass} /></label>
+                                      <label className="block"><span className="text-xs text-[#111111]/55">Frame width (approx.)</span><input type="number" min="1" step="any" value={editingDimensionFields.frameWidth} onChange={(event) => setEditingDimensionFields((fields) => ({ ...fields, frameWidth: event.target.value }))} className={fieldClass} /></label>
+                                    </div>
+                                  </div>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Category</span><select value={editingProductDraft.category} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, category: event.target.value, accessoryCategory: event.target.value === "Accessories" ? editingProductDraft.accessoryCategory ?? ACCESSORY_SUBCATEGORIES[0] : undefined })} className={fieldClass}>{categoryOptions.map((category) => <option key={category}>{category}</option>)}</select></label>
                                   {editingProductDraft.category === "Accessories" && (
                                     <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Accessory category</span><select value={editingProductDraft.accessoryCategory ?? ACCESSORY_SUBCATEGORIES[0]} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, accessoryCategory: event.target.value as typeof ACCESSORY_SUBCATEGORIES[number] })} className={fieldClass}>{ACCESSORY_SUBCATEGORIES.map((category) => <option key={category}>{category}</option>)}</select></label>

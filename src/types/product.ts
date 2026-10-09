@@ -87,7 +87,7 @@ export interface PrescriptionSubmission {
 
 import type { StaticImageData } from "next/image";
 
-export type FrameType = "Rimless Frames" | "Sheet Frames" | "Metal Frames";
+export type FrameType = "Rimless Frames" | "Sheet Frames" | "Metal Frames" | "Titanium Frames" | "Turban Frames";
 
 export const ACCESSORY_SUBCATEGORIES = [
   "Lens Care",
@@ -120,6 +120,7 @@ export interface Product {
   accessoryCategory?: AccessorySubcategory;
   frameType?: FrameType;
   size: "Small" | "Medium" | "Large";
+  frameWidth?: number;
   prescription: boolean;
   description: string;
   details: string[];
