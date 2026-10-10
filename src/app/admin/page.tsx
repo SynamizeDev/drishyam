@@ -40,6 +40,7 @@ import {
   RotateCcw,
   Package,
   Pencil,
+  GripVertical,
 } from "lucide-react";
 import {
   getDefaultOriginalPrice,
@@ -176,7 +177,7 @@ const defaultNewProduct = {
   name: "", slug: "", price: "", originalPrice: "", image: "", description: "",
   lensWidth: "", bridge: "", templeLength: "", frameWidth: "",
   category: "Eyeglasses" as Product["category"],
-  accessoryCategory: ACCESSORY_SUBCATEGORIES[0] as AccessorySubcategory,
+  accessoryCategory: undefined,
   shape: "Rectangle" as Product["shape"],
   frameType: "Sheet Frames" as Product["frameType"],
   gender: "Unisex" as Product["gender"],
@@ -357,6 +358,7 @@ export default function AdminPage() {
   const [newCategoryIds, setNewCategoryIds] = useState<string[]>([]);
   const [categoryErrors, setCategoryErrors] = useState<Array<Record<string, string>>>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState(defaultNewProduct);
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
@@ -422,6 +424,9 @@ export default function AdminPage() {
         : [...categories, "Accessories"];
     },
     [content.categories]
+  );
+  const isSimpleProductCategory = ["contact lens", "contact lenses", "accessories"].includes(
+    newProduct.category.trim().toLowerCase()
   );
 
   const customerTotalPages = Math.max(1, Math.ceil(leads.length / PAGE_SIZE));
@@ -534,6 +539,23 @@ export default function AdminPage() {
         setToastMessage("Category card deleted.");
       },
     });
+  };
+
+  const reorderCategory = (targetIndex: number) => {
+    const sourceIndex = content.categories.findIndex((category) => category.id === draggedCategoryId);
+    if (sourceIndex < 0 || sourceIndex === targetIndex) return;
+
+    const categories = [...content.categories];
+    const [movedCategory] = categories.splice(sourceIndex, 1);
+    const insertIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    categories.splice(insertIndex, 0, movedCategory);
+
+    const nextContent = { ...content, categories };
+    setContent(nextContent);
+    setDraggedCategoryId(null);
+    void saveSiteContent(nextContent)
+      .then(() => setToastMessage("Category order saved."))
+      .catch(() => setToastMessage("Category order saved locally, but cloud sync failed."));
   };
 
   const saveCategory = (cat: SiteContent["categories"][number]) => {
@@ -774,7 +796,7 @@ export default function AdminPage() {
       name,
       slug: slug.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
       category: newProduct.category,
-      accessoryCategory: newProduct.category === "Accessories" ? newProduct.accessoryCategory : undefined,
+      accessoryCategory: undefined,
       shape: newProduct.shape,
       frameType: newProduct.frameType,
       price,
@@ -1377,13 +1399,34 @@ export default function AdminPage() {
                         return (
                           <div
                             key={cat.id}
-                            className={`rounded-[24px] border bg-white p-5 transition-all ${isNew ? "border-[#f59e0b] ring-2 ring-[#f59e0b]/20" : "border-[#f1e8db]"
+                            onDragOver={(event) => event.preventDefault()}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              reorderCategory(i);
+                            }}
+                            className={`rounded-[24px] border bg-white p-5 transition-all ${draggedCategoryId === cat.id ? "opacity-50" : ""} ${isNew ? "border-[#f59e0b] ring-2 ring-[#f59e0b]/20" : "border-[#f1e8db]"
                               }`}
                           >
                             <div className="mb-4 flex items-center justify-between">
-                              <p className="text-[10px] font-bold uppercase -[0.2em] text-[#111111]/45">
-                                {isNew ? "🆕 New Card" : `Category #${i + 1}`}
-                              </p>
+                              <div className="flex items-center gap-2 text-[#111111]/45">
+                                <button
+                                  type="button"
+                                  draggable
+                                  onDragStart={(event) => {
+                                    setDraggedCategoryId(cat.id);
+                                    event.dataTransfer.effectAllowed = "move";
+                                    event.dataTransfer.setData("text/plain", cat.id);
+                                  }}
+                                  onDragEnd={() => setDraggedCategoryId(null)}
+                                  aria-label={`Drag to reorder ${cat.name || `category ${i + 1}`}`}
+                                  className="cursor-grab active:cursor-grabbing"
+                                >
+                                  <GripVertical className="h-4 w-4" aria-hidden="true" />
+                                </button>
+                                <p className="text-[10px] font-bold uppercase -[0.2em]">
+                                  {isNew ? "🆕 New Card" : `Category #${i + 1}`}
+                                </p>
+                              </div>
                               <button
                                 type="button"
                                 onClick={() => removeCategory(i)}
@@ -1498,18 +1541,6 @@ export default function AdminPage() {
                             {categoryOptions.map((o) => <option key={o}>{o}</option>)}
                           </select>
                         </label>
-                        {newProduct.category === "Accessories" && (
-                          <label className="block">
-                            <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Accessory category</span>
-                            <select
-                              value={newProduct.accessoryCategory}
-                              onChange={(event) => setNewProduct((product) => ({ ...product, accessoryCategory: event.target.value as typeof ACCESSORY_SUBCATEGORIES[number] }))}
-                              className={fieldClass}
-                            >
-                              {ACCESSORY_SUBCATEGORIES.map((category) => <option key={category}>{category}</option>)}
-                            </select>
-                          </label>
-                        )}
                         <label className="block">
                           <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Price (₹) *</span>
                           <input
@@ -1521,7 +1552,7 @@ export default function AdminPage() {
                             className={fieldClass}
                           />
                         </label>
-                        <label className="block">
+                        <label className={isSimpleProductCategory ? "hidden" : "block"}>
                           <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Old Price (₹)</span>
                           <input
                             type="number"
@@ -1533,7 +1564,7 @@ export default function AdminPage() {
                           />
                           <span className="mt-1 block text-xs text-[#111111]/45">Leave blank to default to 20% above the current price, rounded up to the next ₹10.</span>
                         </label>
-                        <div className="sm:col-span-2">
+                        <div className={`sm:col-span-2 ${isSimpleProductCategory ? "hidden" : ""}`}>
                           <p className="mb-2 text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Frame Dimensions (mm)</p>
                           <div className="grid gap-3 sm:grid-cols-2">
                             <label className="block"><span className="text-xs text-[#111111]/55">Lens width</span><input type="number" min="1" step="any" placeholder="50" value={newProduct.lensWidth} onChange={(event) => setNewProduct((product) => ({ ...product, lensWidth: event.target.value }))} className={fieldClass} /></label>
@@ -1553,7 +1584,7 @@ export default function AdminPage() {
                           className="sm:col-span-2"
                         />
 
-                        <label className="block">
+                        <label className={isSimpleProductCategory ? "hidden" : "block"}>
                           <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Face Shape</span>
                           <select
                             value={newProduct.shape}
@@ -1563,7 +1594,7 @@ export default function AdminPage() {
                             {["Oval", "Round", "Square", "Heart", "Diamond", "Rectangle", "Aviator", "Geometric", "Cat-Eye"].map((s) => <option key={s}>{s}</option>)}
                           </select>
                         </label>
-                        <label className="block">
+                        <label className={isSimpleProductCategory ? "hidden" : "block"}>
                           <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Frame Type</span>
                           <select
                             value={newProduct.frameType}
@@ -1573,7 +1604,7 @@ export default function AdminPage() {
                             {frameTypeOptions.map((frameType) => <option key={frameType}>{frameType}</option>)}
                           </select>
                         </label>
-                        <label className="block">
+                        <label className={isSimpleProductCategory ? "hidden" : "block"}>
                           <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Gender</span>
                           <select
                             value={newProduct.gender}
@@ -1583,7 +1614,7 @@ export default function AdminPage() {
                             {["Men", "Women", "Kids", "Unisex"].map((g) => <option key={g}>{g}</option>)}
                           </select>
                         </label>
-                        <div className="sm:col-span-2 rounded-xl border border-[#eadcc6] bg-[#fffaf5] p-3">
+                        <div className={`sm:col-span-2 rounded-xl border border-[#eadcc6] bg-[#fffaf5] p-3 ${isSimpleProductCategory ? "hidden" : ""}`}>
                           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/60">Header Filters</p>
                           <p className="mt-1 text-xs text-[#111111]/45">Gender and category select Men, Women, Kids, Eyeglasses, and Sunglasses automatically.</p>
                           <div className="mt-3 flex flex-wrap gap-4">
@@ -1617,7 +1648,7 @@ export default function AdminPage() {
                             className={`${fieldClass} resize-none`}
                           />
                         </label>
-                        <div className="sm:col-span-2">
+                        <div className={`sm:col-span-2 ${isSimpleProductCategory ? "hidden" : ""}`}>
                           <LensConfigurationEditor
                             value={newLensConfiguration}
                             onChange={setNewLensConfiguration}

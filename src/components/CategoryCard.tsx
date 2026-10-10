@@ -14,22 +14,6 @@ import {
   hydrateSiteContent,
 } from "@/lib/site-content";
 
-const ACCESSORIES_CATEGORY: AdminCategory = {
-  id: "cat-accessories",
-  name: "Accessories",
-  description: "Cases and essentials to care for your eyewear.",
-  image: "https://images.unsplash.com/photo-1632986636900-a57d247122a2?q=80&w=900&auto=format&fit=crop",
-  slug: "accessories",
-};
-
-const TURBAN_FRAME_CATEGORY: AdminCategory = {
-  id: "cat-turban-frame",
-  name: "Turban Frame",
-  description: "Comfortable frames designed to fit your style.",
-  image: "https://images.unsplash.com/photo-1762331221584-bb856812681e?q=80&w=900&auto=format&fit=crop",
-  slug: "turban-frame",
-};
-
 export default function OpticalCategories() {
   const router = useRouter();
   const [categories, setCategories] = useState<AdminCategory[]>([]);
@@ -53,23 +37,12 @@ export default function OpticalCategories() {
 
   useEffect(() => {
     const syncCategories = (nextCategories: AdminCategory[]) => {
-      const categoriesWithAccessories = nextCategories.some(
-        (category) => category.name.trim().toLowerCase() === "accessories"
-      )
-        ? nextCategories
-        : [...nextCategories, ACCESSORIES_CATEGORY];
-      const categoriesWithTurbanFrame = categoriesWithAccessories.some(
-        (category) => category.name.trim().toLowerCase() === "turban frame"
-      )
-        ? categoriesWithAccessories
-        : [...categoriesWithAccessories, TURBAN_FRAME_CATEGORY];
-
-      setCategories(categoriesWithTurbanFrame);
+      setCategories(nextCategories);
 
       setActive((current) =>
-        categoriesWithTurbanFrame.some((category) => category.id === current)
+        nextCategories.some((category) => category.id === current)
           ? current
-          : categoriesWithTurbanFrame[0]?.id ?? null
+          : nextCategories[0]?.id ?? null
       );
     };
 

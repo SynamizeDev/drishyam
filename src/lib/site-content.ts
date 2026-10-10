@@ -99,6 +99,7 @@ export interface SiteContent {
   benefits: BenefitItem[];
   testimonials: TestimonialItem[];
   categories: AdminCategory[];
+  categoryCardsOrderVersion?: number;
   homeCollectionCards: HomeCollectionCard[];
   featuredProductIds?: string[];
   newArrivalProductIds?: string[];
@@ -262,6 +263,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   benefits: DEFAULT_BENEFITS,
   testimonials: DEFAULT_TESTIMONIALS,
   categories: defaultCategories,
+  categoryCardsOrderVersion: 1,
   homeCollectionCards: [
     {
       id: "collection-men",
@@ -357,6 +359,25 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
 
 const SITE_CONTENT_KEY = "drishyam_site_content";
 const ONBOARDING_LEADS_KEY = "drishyam_onboarding_leads";
+const HOMEPAGE_CATEGORY_ORDER = [
+  "cat-sunglasses",
+  "cat-eyeglasses",
+  "cat-contact-lens",
+  "cat-clip-on",
+  "cat-turban-frame",
+  "cat-accessories",
+];
+
+function migrateHomepageCategoryOrder(savedCategories: AdminCategory[]): AdminCategory[] {
+  const categories = [...savedCategories];
+  const orderedCategories = HOMEPAGE_CATEGORY_ORDER.map(
+    (id) => categories.find((category) => category.id === id)
+      ?? defaultCategories.find((category) => category.id === id)
+  ).filter((category): category is AdminCategory => Boolean(category));
+  const orderedIds = new Set(orderedCategories.map((category) => category.id));
+
+  return [...orderedCategories, ...categories.filter((category) => !orderedIds.has(category.id))];
+}
 
 function mergeContent(saved: Partial<SiteContent>): SiteContent {
   return {
@@ -379,9 +400,10 @@ function mergeContent(saved: Partial<SiteContent>): SiteContent {
     },
     benefits: saved.benefits ?? DEFAULT_SITE_CONTENT.benefits,
     testimonials: saved.testimonials ?? DEFAULT_SITE_CONTENT.testimonials,
-    categories: saved.categories?.length
-      ? saved.categories
-      : DEFAULT_SITE_CONTENT.categories,
+    categories: saved.categoryCardsOrderVersion === 1
+      ? saved.categories?.length ? saved.categories : DEFAULT_SITE_CONTENT.categories
+      : migrateHomepageCategoryOrder(saved.categories?.length ? saved.categories : DEFAULT_SITE_CONTENT.categories),
+    categoryCardsOrderVersion: 1,
     homeCollectionCards: saved.homeCollectionCards?.length
       ? saved.homeCollectionCards
       : DEFAULT_SITE_CONTENT.homeCollectionCards,
