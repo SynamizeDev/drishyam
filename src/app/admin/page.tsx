@@ -1614,6 +1614,26 @@ export default function AdminPage() {
                             {["Men", "Women", "Kids", "Unisex"].map((g) => <option key={g}>{g}</option>)}
                           </select>
                         </label>
+                        <label className={isSimpleProductCategory ? "hidden" : "block"}>
+                          <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Material</span>
+                          <select
+                            value={newProduct.material}
+                            onChange={(event) => setNewProduct((product) => ({ ...product, material: event.target.value as Product["material"] }))}
+                            className={fieldClass}
+                          >
+                            {["Acetate", "Titanium", "Metal", "Eco-Friendly", "Not Applicable"].map((material) => <option key={material}>{material}</option>)}
+                          </select>
+                        </label>
+                        <label className={isSimpleProductCategory ? "hidden" : "block"}>
+                          <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Frame size</span>
+                          <select
+                            value={newProduct.size}
+                            onChange={(event) => setNewProduct((product) => ({ ...product, size: event.target.value as Product["size"] }))}
+                            className={fieldClass}
+                          >
+                            {["Small", "Medium", "Large"].map((size) => <option key={size}>{size}</option>)}
+                          </select>
+                        </label>
                         <div className={`sm:col-span-2 rounded-xl border border-[#eadcc6] bg-[#fffaf5] p-3 ${isSimpleProductCategory ? "hidden" : ""}`}>
                           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/60">Header Filters</p>
                           <p className="mt-1 text-xs text-[#111111]/45">Gender and category select Men, Women, Kids, Eyeglasses, and Sunglasses automatically.</p>
@@ -1807,6 +1827,8 @@ export default function AdminPage() {
                                     <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Accessory category</span><select value={editingProductDraft.accessoryCategory ?? ACCESSORY_SUBCATEGORIES[0]} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, accessoryCategory: event.target.value as typeof ACCESSORY_SUBCATEGORIES[number] })} className={fieldClass}>{ACCESSORY_SUBCATEGORIES.map((category) => <option key={category}>{category}</option>)}</select></label>
                                   )}
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Gender</span><select value={editingProductDraft.gender} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, gender: event.target.value as Product["gender"] })} className={fieldClass}>{["Men", "Women", "Kids", "Unisex"].map((gender) => <option key={gender}>{gender}</option>)}</select></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Material</span><select value={editingProductDraft.material ?? "Acetate"} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, material: event.target.value as Product["material"] })} className={fieldClass}>{["Acetate", "Titanium", "Metal", "Eco-Friendly", "Not Applicable"].map((material) => <option key={material}>{material}</option>)}</select></label>
+                                  <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Frame size</span><select value={editingProductDraft.size ?? "Medium"} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, size: event.target.value as Product["size"] })} className={fieldClass}>{["Small", "Medium", "Large"].map((size) => <option key={size}>{size}</option>)}</select></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Shape</span><select value={editingProductDraft.shape} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, shape: event.target.value })} className={fieldClass}>{["Oval", "Round", "Square", "Heart", "Diamond", "Rectangle", "Aviator", "Geometric", "Cat-Eye"].map((shape) => <option key={shape}>{shape}</option>)}</select></label>
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Frame Type</span><select value={editingProductDraft.frameType ?? getProductFrameType(editingProductDraft) ?? "Sheet Frames"} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, frameType: event.target.value as Product["frameType"] })} className={fieldClass}>{frameTypeOptions.map((frameType) => <option key={frameType}>{frameType}</option>)}</select></label>
                                   <label className="flex items-center gap-2 text-sm text-[#111111]/75"><input type="checkbox" checked={Boolean(editingProductDraft.isNew)} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, isNew: event.target.checked })} className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]" /> New Arrivals</label>
