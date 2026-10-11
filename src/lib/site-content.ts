@@ -263,7 +263,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   benefits: DEFAULT_BENEFITS,
   testimonials: DEFAULT_TESTIMONIALS,
   categories: defaultCategories,
-  categoryCardsOrderVersion: 1,
+  categoryCardsOrderVersion: 2,
   homeCollectionCards: [
     {
       id: "collection-men",
@@ -400,10 +400,10 @@ function mergeContent(saved: Partial<SiteContent>): SiteContent {
     },
     benefits: saved.benefits ?? DEFAULT_SITE_CONTENT.benefits,
     testimonials: saved.testimonials ?? DEFAULT_SITE_CONTENT.testimonials,
-    categories: saved.categoryCardsOrderVersion === 1
+    categories: saved.categoryCardsOrderVersion === 2
       ? saved.categories?.length ? saved.categories : DEFAULT_SITE_CONTENT.categories
       : migrateHomepageCategoryOrder(saved.categories?.length ? saved.categories : DEFAULT_SITE_CONTENT.categories),
-    categoryCardsOrderVersion: 1,
+    categoryCardsOrderVersion: 2,
     homeCollectionCards: saved.homeCollectionCards?.length
       ? saved.homeCollectionCards
       : DEFAULT_SITE_CONTENT.homeCollectionCards,
