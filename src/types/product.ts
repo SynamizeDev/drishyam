@@ -127,6 +127,12 @@ export interface Product {
   dimensions: string; // e.g. "49-21-145" (lens width - bridge - temple length)
   isBestSeller?: boolean;
   isNew?: boolean;
+  hasWarranty?: boolean;
+  freeShipping?: boolean;
+  easyReturns?: boolean;
+  subtitle?: string;
+  lensPower?: string;
+  lensDetails?: string[];
   lensConfiguration?: ProductLensConfiguration;
 }
 

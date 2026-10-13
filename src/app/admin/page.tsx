@@ -175,6 +175,7 @@ const serializeProductDimensions = (fields: ProductDimensionFields): string | nu
 
 const defaultNewProduct = {
   name: "", slug: "", price: "", originalPrice: "", image: "", description: "",
+  subtitle: "", lensPower: "", lensDetails: "", details: "",
   lensWidth: "", bridge: "", templeLength: "", frameWidth: "",
   category: "Eyeglasses" as Product["category"],
   accessoryCategory: undefined,
@@ -186,6 +187,9 @@ const defaultNewProduct = {
   prescription: true,
   isBestSeller: false,
   isNew: false,
+  hasWarranty: false,
+  freeShipping: true,
+  easyReturns: false,
 };
 
 const emptyLensConfiguration = (): ProductLensConfiguration => ({
@@ -237,7 +241,7 @@ function ProductSectionPanel({
           </div>
           <div>
             <h4 className="font-semibold text-[#111111]">{title}</h4>
-            <p className="text-[10px] text-[#111111]/50">{selectedIds.length} product{selectedIds.length !== 1 ? "s" : ""} pinned</p>
+            <p className="text-[10px] text-[#111111]/50">{selectedProducts.length} product{selectedProducts.length !== 1 ? "s" : ""} pinned</p>
           </div>
         </div>
         <button
@@ -308,6 +312,7 @@ function ProductSectionPanel({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-[#111111]">{p.name}</p>
                   <p className="text-[10px] uppercase -[0.14em] text-[#111111]/45">₹{p.price} · {p.category}</p>
+                  {p.freeShipping !== false && <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.12em] text-emerald-700">Free shipping</p>}
                 </div>
                 <button
                   type="button"
@@ -428,6 +433,7 @@ export default function AdminPage() {
   const isSimpleProductCategory = ["contact lens", "contact lenses", "accessories"].includes(
     newProduct.category.trim().toLowerCase()
   );
+  const isContactLensProduct = /^contact lens(e)?s?$/i.test(newProduct.category.trim());
 
   const customerTotalPages = Math.max(1, Math.ceil(leads.length / PAGE_SIZE));
   const salesTotalPages = Math.max(1, Math.ceil((content.sales ?? []).length / PAGE_SIZE));
@@ -790,6 +796,10 @@ export default function AdminPage() {
     const galleryImages = uniqueImageUrls.length === 1
       ? [uniqueImageUrls[0], uniqueImageUrls[0]]
       : uniqueImageUrls;
+    const isAccessoryOrContactLens = newProduct.category.trim().toLowerCase() === "accessories" || isContactLensProduct;
+    const description = newProduct.description.trim() || (isAccessoryOrContactLens
+      ? `${name} from the ${newProduct.category.toLowerCase()} collection.`
+      : `${name} features a ${newProduct.shape.toLowerCase()} design in ${newProduct.material.toLowerCase()}, with a ${newProduct.size.toLowerCase()} fit.`);
 
     const product: Product = {
       id: `frame-${Date.now()}`,
@@ -809,12 +819,18 @@ export default function AdminPage() {
       material: newProduct.material,
       size: newProduct.size,
       prescription: newProduct.prescription,
-      description: newProduct.description.trim() || "Quality product from Drishyam Optical.",
-      details: ["Added from admin dashboard", "Ready for sale"],
+      description,
+      details: newProduct.details.split("\n").map((detail) => detail.trim()).filter(Boolean),
       dimensions,
       frameWidth,
       isBestSeller: newProduct.isBestSeller,
       isNew: newProduct.isNew,
+      hasWarranty: newProduct.hasWarranty,
+      freeShipping: newProduct.freeShipping,
+      easyReturns: newProduct.easyReturns,
+      subtitle: newProduct.subtitle.trim() || undefined,
+      lensPower: newProduct.lensPower.trim() || undefined,
+      lensDetails: newProduct.lensDetails.split("\n").map((detail) => detail.trim()).filter(Boolean),
       lensConfiguration: newProduct.category === "Accessories"
         ? { enabled: false, visionTypes: [] }
         : newLensConfiguration.visionTypes.length > 0 ? newLensConfiguration : undefined,
@@ -1584,6 +1600,23 @@ export default function AdminPage() {
                           className="sm:col-span-2"
                         />
 
+                        {isContactLensProduct && (
+                          <div className="sm:col-span-2 grid gap-4 rounded-xl border border-[#eadcc6] bg-[#fffaf5] p-4 sm:grid-cols-2">
+                            <label className="block">
+                              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#111111]/60">Subtitle (optional)</span>
+                              <input value={newProduct.subtitle} onChange={(event) => setNewProduct((product) => ({ ...product, subtitle: event.target.value }))} placeholder="Short line under the product name" className={fieldClass} />
+                            </label>
+                            <label className="block">
+                              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#111111]/60">Lens power (optional)</span>
+                              <input value={newProduct.lensPower} onChange={(event) => setNewProduct((product) => ({ ...product, lensPower: event.target.value }))} placeholder="e.g. Plano, -1.00 to -6.00" className={fieldClass} />
+                            </label>
+                            <label className="block sm:col-span-2">
+                              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#111111]/60">Lens details (optional, one item per line)</span>
+                              <textarea value={newProduct.lensDetails} onChange={(event) => setNewProduct((product) => ({ ...product, lensDetails: event.target.value }))} rows={3} placeholder={"Daily wear\nUV protection\nComfortable moisture retention"} className={`${fieldClass} resize-y`} />
+                            </label>
+                          </div>
+                        )}
+
                         <label className={isSimpleProductCategory ? "hidden" : "block"}>
                           <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Face Shape</span>
                           <select
@@ -1658,14 +1691,56 @@ export default function AdminPage() {
                             </label>
                           </div>
                         </div>
+                        <div className="sm:col-span-2 rounded-xl border border-[#eadcc6] bg-white p-3">
+                          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#111111]/60">Product benefits</p>
+                          <div className="mt-3 flex flex-wrap gap-4">
+                            <label className="flex items-center gap-2 text-sm text-[#111111]/75">
+                              <input
+                                type="checkbox"
+                                checked={newProduct.hasWarranty}
+                                onChange={(event) => setNewProduct((product) => ({ ...product, hasWarranty: event.target.checked }))}
+                                className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]"
+                              />
+                              Warranty
+                            </label>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-emerald-800">
+                              <input
+                                type="checkbox"
+                                checked={newProduct.freeShipping}
+                                onChange={(event) => setNewProduct((product) => ({ ...product, freeShipping: event.target.checked }))}
+                                className="h-4 w-4 rounded border-[#eadcc6] text-emerald-700 focus:ring-emerald-600"
+                              />
+                              Free shipping
+                            </label>
+                            <label className="flex items-center gap-2 text-sm text-[#111111]/75">
+                              <input
+                                type="checkbox"
+                                checked={newProduct.easyReturns}
+                                onChange={(event) => setNewProduct((product) => ({ ...product, easyReturns: event.target.checked }))}
+                                className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]"
+                              />
+                              Easy returns
+                            </label>
+                          </div>
+                        </div>
                         <label className="sm:col-span-2 block">
-                          <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Description</span>
+                          <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">{isContactLensProduct ? "Details / description" : "Description"}</span>
                           <textarea
-                            placeholder="Describe the product — comfort, style, material…"
+                            placeholder="Describe the product using details you can verify, such as material, fit, or key features…"
                             value={newProduct.description}
                             onChange={(e) => setNewProduct((p) => ({ ...p, description: e.target.value }))}
                             rows={3}
                             className={`${fieldClass} resize-none`}
+                          />
+                        </label>
+                        <label className="sm:col-span-2 block">
+                          <span className="text-[11px] font-bold uppercase -[0.2em] text-[#111111]/60">Product details (optional, one item per line)</span>
+                          <textarea
+                            placeholder={"Lightweight acetate frame\nAdjustable nose pads"}
+                            value={newProduct.details}
+                            onChange={(event) => setNewProduct((product) => ({ ...product, details: event.target.value }))}
+                            rows={3}
+                            className={`${fieldClass} resize-y`}
                           />
                         </label>
                         <div className={`sm:col-span-2 ${isSimpleProductCategory ? "hidden" : ""}`}>
@@ -1833,8 +1908,17 @@ export default function AdminPage() {
                                   <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Frame Type</span><select value={editingProductDraft.frameType ?? getProductFrameType(editingProductDraft) ?? "Sheet Frames"} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, frameType: event.target.value as Product["frameType"] })} className={fieldClass}>{frameTypeOptions.map((frameType) => <option key={frameType}>{frameType}</option>)}</select></label>
                                   <label className="flex items-center gap-2 text-sm text-[#111111]/75"><input type="checkbox" checked={Boolean(editingProductDraft.isNew)} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, isNew: event.target.checked })} className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]" /> New Arrivals</label>
                                   <label className="flex items-center gap-2 text-sm text-[#111111]/75"><input type="checkbox" checked={Boolean(editingProductDraft.isBestSeller)} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, isBestSeller: event.target.checked })} className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]" /> Best Sellers</label>
+                                  <label className="flex items-center gap-2 text-sm text-[#111111]/75"><input type="checkbox" checked={Boolean(editingProductDraft.hasWarranty)} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, hasWarranty: event.target.checked })} className="h-4 w-4 rounded border-[#eadcc6] text-[#f59e0b] focus:ring-[#f59e0b]" /> Warranty</label>
+                                  <label className="flex items-center gap-2 text-sm font-semibold text-emerald-800"><input type="checkbox" checked={editingProductDraft.freeShipping !== false} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, freeShipping: event.target.checked })} className="h-4 w-4 rounded border-[#eadcc6] text-emerald-700 focus:ring-emerald-600" /> Free shipping</label>
                                   <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Product photo URLs (comma separated)</span><input value={editingProductDraft.images.map((image) => typeof image === "string" ? image : image.src).join(",")} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, images: event.target.value.split(",").map((image) => image.trim()).filter(Boolean) })} className={fieldClass} /></label>
-                                  <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Description</span><textarea value={editingProductDraft.description} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, description: event.target.value })} rows={3} className={`${fieldClass} resize-y`} /></label>
+                                  {/^contact lens(e)?s?$/i.test(editingProductDraft.category.trim()) && (
+                                    <>
+                                      <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Subtitle (optional)</span><input value={editingProductDraft.subtitle ?? ""} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, subtitle: event.target.value })} className={fieldClass} /></label>
+                                      <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Lens power (optional)</span><input value={editingProductDraft.lensPower ?? ""} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, lensPower: event.target.value })} placeholder="e.g. Plano, -1.00 to -6.00" className={fieldClass} /></label>
+                                      <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Lens details (optional, one item per line)</span><textarea value={editingProductDraft.lensDetails?.join("\n") ?? ""} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, lensDetails: event.target.value.split("\n").map((detail) => detail.trim()).filter(Boolean) })} rows={3} className={`${fieldClass} resize-y`} /></label>
+                                    </>
+                                  )}
+                                  <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">{/^contact lens(e)?s?$/i.test(editingProductDraft.category.trim()) ? "Details / description" : "Description"}</span><textarea value={editingProductDraft.description} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, description: event.target.value })} rows={3} className={`${fieldClass} resize-y`} /></label>
                                 </div>
                                 <div className="mt-3 flex justify-end gap-2">
                                   <button type="button" onClick={() => { setEditingProductId(null); setEditingProductDraft(null); }} className="rounded-xl border border-[#eadcc6] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em]">Cancel</button>

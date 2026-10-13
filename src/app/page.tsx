@@ -54,17 +54,9 @@ export default function HomePage() {
   const newArrivalProductIds = siteContent.newArrivalProductIds ?? [];
   const shopByStyleProductIds = siteContent.shopByStyleProductIds ?? [];
 
-  const bestSellers = featuredProductIds.length
-    ? productList.filter((product) => featuredProductIds.includes(product.id))
-    : productList.filter((product) => product.isBestSeller).slice(0, 4);
-
-  const allNewArrivals = newArrivalProductIds.length
-    ? productList.filter((product) => newArrivalProductIds.includes(product.id))
-    : productList.filter((product) => product.isNew);
-
-  const shopByStyleProducts = shopByStyleProductIds.length
-    ? productList.filter((product) => shopByStyleProductIds.includes(product.id))
-    : productList.slice(0, 4);
+  const bestSellers = productList.filter((product) => featuredProductIds.includes(product.id));
+  const allNewArrivals = productList.filter((product) => newArrivalProductIds.includes(product.id));
+  const shopByStyleProducts = productList.filter((product) => shopByStyleProductIds.includes(product.id));
 
   const visibleNewArrivals = allNewArrivals.slice(0, visibleNewArrivalsCount);
 

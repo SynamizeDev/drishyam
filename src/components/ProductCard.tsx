@@ -144,7 +144,7 @@
 import React, { useState } from "react";
 import { Product } from "@/types/product";
 import { type CartItem, useApp } from "@/context/AppContext";
-import { Heart, ShoppingBag, Eye } from "lucide-react";
+import { Heart, ShoppingBag, Eye, Truck, RotateCcw } from "lucide-react";
 import { makeWhatsAppUrl } from "@/lib/whatsapp";
 import Image from "next/image";
 import Link from "next/link";
@@ -229,10 +229,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Image overlay */}
           <div className="absolute inset-0 bg-linear-to-t from-[#171512]/60 via-transparent to-[#171512]/10 opacity-70 transition-opacity duration-500 group-hover:opacity-100" />
 
-          {/* Existing category data */}
-          <div className="absolute left-2 top-2 z-10 rounded-full  border border-white/40 bg-white/80 px-1.5 py-0.5 text-[6.5px] font-bold uppercase tracking-[0.1em] text-[#231f1a] shadow-md backdrop-blur-md sm:left-4 sm:top-4 sm:px-3 sm:py-1.5 sm:text-[9px]">
-            {product.shape} {product.category}
-          </div>
           </div>
         </Link>
 
@@ -291,6 +287,18 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
           </div>
+          {product.freeShipping !== false && (
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-emerald-800 ring-1 ring-emerald-200 sm:text-[10px]">
+              <Truck className="h-3.5 w-3.5" />
+              Free shipping
+            </div>
+          )}
+          {product.easyReturns && (
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-amber-800 ring-1 ring-amber-200 sm:text-[10px]">
+              <RotateCcw className="h-3.5 w-3.5" />
+              Easy returns
+            </div>
+          )}
         </div>
 
         {/* EXISTING ACTIONS ONLY */}

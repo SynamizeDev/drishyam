@@ -165,8 +165,9 @@ export default function ProductDetailPage({ params }: PageProps) {
 
   const isLiked = isInWishlist(product.id);
   const isAccessory = product.category.trim().toLowerCase() === "accessories";
+  const isContactLens = /^contact lenses?$/i.test(product.category.trim());
 
-  const featureHighlights = isAccessory ? [] : [
+  const featureHighlights = isAccessory || isContactLens ? [] : [
     {
       icon: Sparkles,
       label: "Premium material",
@@ -184,8 +185,8 @@ export default function ProductDetailPage({ params }: PageProps) {
     },
   ];
 
-  const dimensionValues = isAccessory ? [] : product.dimensions.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
-  const frameDimensions = isAccessory ? [] : [
+  const dimensionValues = isAccessory || isContactLens ? [] : product.dimensions.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+  const frameDimensions = isAccessory || isContactLens ? [] : [
         ...(dimensionValues.length >= 3
           ? [
         { icon: Ruler, label: "Lens width", value: `${dimensionValues[0]} mm` },
@@ -376,17 +377,19 @@ export default function ProductDetailPage({ params }: PageProps) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 border-t border-beige-100 pt-4 text-[12px] text-charcoal/60">
-                  <div className="flex items-center justify-center gap-1.5 rounded-xl bg-beige-50 px-2 py-2">
-                    <ShieldCheck className="h-3.5 w-3.5 text-charcoal/70" />
-                    Warranty
-                  </div>
-
-                  <div className="flex items-center justify-center gap-1.5 rounded-xl bg-beige-50 px-2 py-2">
-                    <Truck className="h-3.5 w-3.5 text-charcoal/70" />
-                    Free shipping
-                  </div>
-
+                <div className="grid grid-cols-2 gap-2 border-t border-beige-100 pt-4 text-[12px] text-charcoal/60">
+                  {product.hasWarranty && (
+                    <div className="flex items-center justify-center gap-1.5 rounded-xl bg-beige-50 px-2 py-2">
+                      <ShieldCheck className="h-3.5 w-3.5 text-charcoal/70" />
+                      Warranty
+                    </div>
+                  )}
+                  {product.freeShipping !== false && (
+                    <div className="flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-2 font-bold text-emerald-800">
+                      <Truck className="h-4 w-4" />
+                      Free shipping
+                    </div>
+                  )}
                   <div className="flex items-center justify-center gap-1.5 rounded-xl bg-beige-50 px-2 py-2">
                     <RotateCcw className="h-3.5 w-3.5 text-charcoal/70" />
                     Easy returns
@@ -478,14 +481,19 @@ export default function ProductDetailPage({ params }: PageProps) {
               {product.category}
             </span>
 
-            <span className="text-charcoal/45">
-              {product.accessoryCategory ?? product.shape}
-            </span>
+            {!isContactLens && (
+              <span className="text-charcoal/45">
+                {product.accessoryCategory ?? product.shape}
+              </span>
+            )}
           </div>
 
           <h1 className="text-3xl font-medium leading-[1.05] text-charcoal sm:text-4xl">
             {product.name}
           </h1>
+          {isContactLens && product.subtitle && (
+            <p className="mt-2 text-sm text-charcoal/60">{product.subtitle}</p>
+          )}
 
           <div className="mt-3 flex items-center gap-3 text-xs">
             <div className="flex items-center gap-0.5 text-yellow-500">
@@ -515,7 +523,26 @@ export default function ProductDetailPage({ params }: PageProps) {
         <div className="space-y-4 pt-4">
 
           {/* Feature Highlights */}
-          {isAccessory ? (
+          {isContactLens ? (
+            <div className="rounded-xl border border-beige-100 bg-[#fffdfb] p-3">
+              {product.description && <p className="text-sm leading-relaxed text-charcoal/70">{product.description}</p>}
+              {product.lensPower && (
+                <p className="mt-3 rounded-lg bg-beige-50 px-3 py-2 text-sm font-semibold text-charcoal">
+                  Lens power: <span className="font-normal">{product.lensPower}</span>
+                </p>
+              )}
+              {(product.lensDetails?.length ? product.lensDetails : product.details).length > 0 && (
+                <ul className="mt-3 space-y-2 text-sm text-charcoal/70">
+                  {(product.lensDetails?.length ? product.lensDetails : product.details).map((detail) => (
+                    <li key={detail} className="flex gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-saffron" aria-hidden="true" />
+                      <span>{detail}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : isAccessory ? (
             <div className="rounded-xl border border-beige-100 bg-[#fffdfb] p-3">
               <p className="text-sm leading-relaxed text-charcoal/70">{product.description}</p>
               <ul className="mt-3 space-y-2 text-sm text-charcoal/70">
@@ -574,16 +601,18 @@ export default function ProductDetailPage({ params }: PageProps) {
               EXISTING DYNAMIC CONFIGURATOR
               DO NOT CHANGE
           ========================== */}
-          <div>
-            <ProductLensConfigurator
-              product={product}
-              onChange={(selection, pricing, valid) => {
-                setConfigurationSelection(selection);
-                setConfigurationPricing(pricing);
-                setConfigurationValid(valid);
-              }}
-            />
-          </div>
+          {!isContactLens && (
+            <div>
+              <ProductLensConfigurator
+                product={product}
+                onChange={(selection, pricing, valid) => {
+                  setConfigurationSelection(selection);
+                  setConfigurationPricing(pricing);
+                  setConfigurationValid(valid);
+                }}
+              />
+            </div>
+          )}
 
           {/* Actions */}
           <div className="space-y-2.5 pt-1">
@@ -624,17 +653,19 @@ export default function ProductDetailPage({ params }: PageProps) {
         </div>
 
         {/* Benefits */}
-        <div className="mt-4 grid grid-cols-3 gap-1.5 border-t border-beige-100 pt-3 text-[10px] text-charcoal/55">
-          <div className="flex items-center justify-center gap-1 rounded-lg bg-beige-50 px-1.5 py-2">
-            <ShieldCheck className="h-3 w-3 shrink-0 text-charcoal/65" />
-            Warranty
-          </div>
-
-          <div className="flex items-center justify-center gap-1 rounded-lg bg-beige-50 px-1.5 py-2">
-            <Truck className="h-3 w-3 shrink-0 text-charcoal/65" />
-            Free shipping
-          </div>
-
+        <div className="mt-4 grid grid-cols-2 gap-1.5 border-t border-beige-100 pt-3 text-[10px] text-charcoal/55">
+          {product.hasWarranty && (
+            <div className="flex items-center justify-center gap-1 rounded-lg bg-beige-50 px-1.5 py-2">
+              <ShieldCheck className="h-3 w-3 shrink-0 text-charcoal/65" />
+              Warranty
+            </div>
+          )}
+          {product.freeShipping !== false && (
+            <div className="flex items-center justify-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-1.5 py-2 font-bold text-emerald-800">
+              <Truck className="h-3.5 w-3.5 shrink-0" />
+              Free shipping
+            </div>
+          )}
           <div className="flex items-center justify-center gap-1 rounded-lg bg-beige-50 px-1.5 py-2">
             <RotateCcw className="h-3 w-3 shrink-0 text-charcoal/65" />
             Easy returns
@@ -654,7 +685,7 @@ export default function ProductDetailPage({ params }: PageProps) {
             <div className="mx-auto  px-6 sm:px-6 lg:px-8">
               <div className="mb-8 flex items-end justify-between gap-4">
                 <h2 className=" text-3xl text-charcoal">
-                  Recommended frames
+                  {isContactLens ? "Recommended products" : "Recommended frames"}
                 </h2>
 
                 <Link

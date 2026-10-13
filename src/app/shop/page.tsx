@@ -91,9 +91,11 @@ function ShopContent() {
 
     // Filter by Category
     if (filters.category) {
-      result = result.filter(
-        (product) => normalizeCategory(product.category) === normalizeCategory(filters.category)
-      );
+      result = matchedCategory
+        ? assignedProducts
+        : result.filter(
+          (product) => normalizeCategory(product.category) === normalizeCategory(filters.category)
+        );
     }
 
     if (filters.accessoryCategory) {
@@ -130,9 +132,7 @@ function ShopContent() {
       result.sort((a, b) => b.rating - a.rating);
     }
 
-    setFilteredProducts(assignedIds.length > 0
-      ? [...assignedProducts, ...result.filter((product) => !assignedIds.includes(product.id))]
-      : result);
+    setFilteredProducts(result);
   }, [allProductsList, filters, siteContent, sortBy, searchParams]);
 
   const resetFilters = () => {
