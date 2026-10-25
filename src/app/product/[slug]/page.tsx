@@ -36,14 +36,71 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+function ProductDetailSkeleton() {
+  return (
+    <>
+      <Header />
+      <main
+        role="status"
+        aria-label="Loading product details"
+        className="bg-[radial-gradient(circle_at_top,_#fffaf5_0%,_#f4efe6_28%,_#ffffff_100%)]"
+      >
+        <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <div className="mb-4 h-4 w-28 animate-pulse rounded bg-[#e8e2d8]" />
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
+            <div className="lg:col-span-7">
+              <div className="aspect-[4/3] animate-pulse rounded-[24px] bg-[#e8e2d8]" />
+              <div className="mt-4 grid grid-cols-4 gap-3">
+                {Array.from({ length: 4 }, (_, index) => (
+                  <div
+                    key={index}
+                    className="aspect-[4/3] animate-pulse rounded-2xl bg-[#e8e2d8]"
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4 lg:col-span-5">
+              <div className="rounded-[24px] border border-beige-100 bg-white/90 p-4 shadow-sm sm:p-5">
+                <div className="mb-2 h-6 w-36 animate-pulse rounded-full bg-[#eee9e0]" />
+                <div className="h-9 w-4/5 animate-pulse rounded bg-[#e8e2d8]" />
+                <div className="mt-4 h-4 w-40 animate-pulse rounded bg-[#eee9e0]" />
+                <div className="mt-6 grid grid-cols-3 gap-2">
+                  {Array.from({ length: 3 }, (_, index) => (
+                    <div
+                      key={index}
+                      className="h-20 animate-pulse rounded-xl bg-[#eee9e0]"
+                    />
+                  ))}
+                </div>
+                <div className="mt-6 h-28 animate-pulse rounded-xl bg-[#eee9e0]" />
+                <div className="mt-4 space-y-2">
+                  <div className="h-11 animate-pulse rounded-full bg-[#e8e2d8]" />
+                  <div className="h-10 animate-pulse rounded-xl bg-[#e8e2d8]" />
+                </div>
+              </div>
+              <div className="h-14 animate-pulse rounded-xl bg-[#eee9e0]" />
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}
+
 export default function ProductDetailPage({ params }: PageProps) {
   const { slug } = use(params);
   const { addToCart, toggleWishlist, isInWishlist } = useApp();
   const [allProducts, setAllProducts] = useState(defaultProducts);
+  const [loadedSlug, setLoadedSlug] = useState<string | null>(null);
 
   useEffect(() => {
-    setAllProducts(getStoredProducts());
-  }, []);
+    const timeout = window.setTimeout(() => {
+      setAllProducts(getStoredProducts());
+      setLoadedSlug(slug);
+    }, 700);
+    return () => window.clearTimeout(timeout);
+  }, [slug]);
 
   // Find product by slug
   const normalizedSlug = decodeURIComponent(slug).trim().toLowerCase();
@@ -87,6 +144,10 @@ export default function ProductDetailPage({ params }: PageProps) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isImageModalOpen]);
+
+  if (loadedSlug !== slug) {
+    return <ProductDetailSkeleton />;
+  }
 
   if (!product) {
     return (

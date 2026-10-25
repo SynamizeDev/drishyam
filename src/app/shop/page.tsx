@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ProductGrid from "@/components/ProductGrid";
+import ProductGrid, { ProductGridSkeleton } from "@/components/ProductGrid";
 import FilterSidebar from "@/components/FilterSidebar";
 import SearchModal from "@/components/SearchModal";
 import MobileMenu from "@/components/MobileMenu";
@@ -41,6 +41,7 @@ function ShopContent() {
   const [sortBy, setSortBy] = useState<string>("featured");
   const [allProductsList, setAllProductsList] = useState<Product[]>(initialProducts);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [isMobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [siteContent, setSiteContent] = useState<Awaited<ReturnType<typeof getSiteContent>> | null>(null);
 
@@ -49,8 +50,15 @@ function ShopContent() {
       setAllProductsList(getStoredProducts());
       setSiteContent(getSiteContent());
     };
-    void hydrateProducts().then(setAllProductsList);
-    void hydrateSiteContent().then(setSiteContent);
+    void Promise.all([hydrateProducts(), hydrateSiteContent()])
+      .then(([products, content]) => {
+        setAllProductsList(products);
+        setSiteContent(content);
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to load the product collection.", error);
+      })
+      .finally(() => setIsLoadingProducts(false));
     window.addEventListener("storage", sync);
     window.addEventListener("drishyam:products-update", sync);
     window.addEventListener("drishyam:content-update", sync);
@@ -230,7 +238,7 @@ function ShopContent() {
 
         {/* Grid List */}
         <div className="flex-1 w-full">
-          <ProductGrid productsList={filteredProducts} showAll />
+          <ProductGrid productsList={filteredProducts} showAll loading={isLoadingProducts} />
         </div>
       </div>
     </div>
@@ -242,7 +250,7 @@ export default function ShopPage() {
     <>
       <Header />
       <main className="flex-1 min-h-screen">
-        <Suspense fallback={<div className="text-center py-20 text-sm text-charcoal/40">Loading collection...</div>}>
+        <Suspense fallback={<div className="mx-auto max-w-full px-4 py-12 sm:px-6 lg:px-8"><ProductGridSkeleton count={8} /></div>}>
           <ShopContent />
         </Suspense>
       </main>
@@ -253,4 +261,3 @@ export default function ShopPage() {
     </>
   );
 }
-

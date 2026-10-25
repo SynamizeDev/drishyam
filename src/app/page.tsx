@@ -30,6 +30,7 @@ export default function HomePage() {
   const [visibleNewArrivalsCount, setVisibleNewArrivalsCount] = useState(4);
   const [siteContent, setSiteContent] = useState(DEFAULT_SITE_CONTENT);
   const [productList, setProductList] = useState<Product[]>(initialProducts);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
   useEffect(() => {
     const sync = () => {
@@ -39,7 +40,9 @@ export default function HomePage() {
     void Promise.all([hydrateSiteContent(), hydrateProducts()]).then(([remoteContent, remoteProducts]) => {
       setSiteContent(remoteContent);
       setProductList(remoteProducts);
-    });
+    }).catch((error: unknown) => {
+      console.error("Failed to load homepage products.", error);
+    }).finally(() => setIsLoadingProducts(false));
     window.addEventListener("storage", sync);
     window.addEventListener("drishyam:content-update", sync);
     window.addEventListener("drishyam:products-update", sync);
@@ -86,7 +89,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <ProductGrid productsList={bestSellers} />
+            <ProductGrid productsList={bestSellers} loading={isLoadingProducts} />
           </div>
         </section>
 
@@ -384,7 +387,7 @@ export default function HomePage() {
               </h2>
             </div>
 
-            <ProductGrid productsList={shopByStyleProducts} />
+            <ProductGrid productsList={shopByStyleProducts} loading={isLoadingProducts} />
           </div>
         </section>
            <Benefits />
@@ -404,7 +407,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <ProductGrid productsList={visibleNewArrivals} />
+            <ProductGrid productsList={visibleNewArrivals} loading={isLoadingProducts} />
             {visibleNewArrivalsCount < allNewArrivals.length && (
               <div className="mt-8 flex justify-center">
                 <button
@@ -433,4 +436,3 @@ export default function HomePage() {
     </>
   );
 }
-

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ProductGrid from "@/components/ProductGrid";
+import ProductGrid, { ProductGridSkeleton } from "@/components/ProductGrid";
 import FilterSidebar from "@/components/FilterSidebar";
 import SearchModal from "@/components/SearchModal";
 import MobileMenu from "@/components/MobileMenu";
@@ -33,6 +33,7 @@ function SunglassesContent() {
   const [sortBy, setSortBy] = useState<string>("featured");
   const [allProductsList, setAllProductsList] = useState<Product[]>(initialProducts);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [isMobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [showLensOptions, setShowLensOptions] = useState(false);
   const [selectedLensColor, setSelectedLensColor] = useState("dark");
@@ -46,8 +47,15 @@ function SunglassesContent() {
       setAllProductsList(getStoredProducts());
       setSiteContent(getSiteContent());
     };
-    void hydrateProducts().then(setAllProductsList);
-    void hydrateSiteContent().then(setSiteContent);
+    void Promise.all([hydrateProducts(), hydrateSiteContent()])
+      .then(([products, content]) => {
+        setAllProductsList(products);
+        setSiteContent(content);
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to load sunglasses.", error);
+      })
+      .finally(() => setIsLoadingProducts(false));
     window.addEventListener("storage", sync);
     window.addEventListener("drishyam:products-update", sync);
     window.addEventListener("drishyam:content-update", sync);
@@ -300,7 +308,7 @@ function SunglassesContent() {
               )}
 
               {/* PRODUCTS GRID */}
-              <ProductGrid productsList={filteredProducts} />
+              <ProductGrid productsList={filteredProducts} loading={isLoadingProducts} />
             </div>
           </div>
         </div>
@@ -313,7 +321,7 @@ function SunglassesContent() {
 
 export default function SunglassesPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="mx-auto max-w-full px-4 py-12 sm:px-6 lg:px-8"><ProductGridSkeleton /></div>}>
       <SunglassesContent />
     </Suspense>
   );

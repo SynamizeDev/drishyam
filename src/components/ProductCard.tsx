@@ -146,7 +146,7 @@ import { Product } from "@/types/product";
 import { type CartItem, useApp } from "@/context/AppContext";
 import { Heart, ShoppingBag, Eye, Truck, RotateCcw } from "lucide-react";
 import { makeWhatsAppUrl } from "@/lib/whatsapp";
-import Image from "next/image";
+import Image, { type ImageProps } from "next/image";
 import Link from "next/link";
 
 interface ProductCardProps {
@@ -170,12 +170,41 @@ function WhatsAppIcon() {
   );
 }
 
+function ProductCardImage({ src, alt }: { src: ImageProps["src"]; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+
+  return (
+    <>
+      {!loaded && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 animate-pulse bg-[#e8e2d8]"
+        />
+      )}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        unoptimized
+        onLoad={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
+        className={`object-cover transition-[opacity,transform] duration-700 ease-out group-hover:scale-[1.08] ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+      />
+    </>
+  );
+}
+
 export default function ProductCard({ product }: ProductCardProps) {
   const { toggleWishlist, isInWishlist, addToCart } = useApp();
   const [hovered, setHovered] = useState(false);
 
   const isLiked = isInWishlist(product.id);
   const selectedColor = product.colors[0];
+  const imageSrc =
+    hovered && product.images[1] ? product.images[1] : product.images[0];
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -213,17 +242,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="relative overflow-hidden bg-[#f3efe8]">
         <Link href={`/product/${product.slug}`} className="block">
           <div className="relative aspect-square w-full overflow-hidden">
-          <Image
-            src={
-              hovered && product.images[1]
-                ? product.images[1]
-                : product.images[0]
-            }
+          <ProductCardImage
+            key={hovered && product.images[1] ? "hover-image" : "main-image"}
+            src={imageSrc}
             alt={product.name}
-            fill
-            unoptimized
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
 
           {/* Image overlay */}
