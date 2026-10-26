@@ -21,6 +21,23 @@ function withDefaultOriginalPrice(product: Product): Product {
   };
 }
 
+function removeAdminDashboardAttribution(product: Product): Product {
+  const withoutAttribution = (text: string) =>
+    text
+      .split(/\r?\n/)
+      .filter((line) => line.trim().toLowerCase() !== "added from admin dashboard")
+      .join("\n")
+      .trim();
+
+  return {
+    ...product,
+    description: withoutAttribution(product.description),
+    details: product.details.map(withoutAttribution),
+    ...(product.subtitle ? { subtitle: withoutAttribution(product.subtitle) } : {}),
+    ...(product.lensDetails ? { lensDetails: product.lensDetails.map(withoutAttribution) } : {}),
+  };
+}
+
 const visionTypeImages = {
   "zero-power": "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?q=80&w=800&auto=format&fit=crop",
   "single-vision": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800&auto=format&fit=crop",
@@ -676,10 +693,10 @@ export function getStoredProducts(): Product[] {
           }
         }
 
-        return migratedProducts.map((product) => ensureFocalVisionType(withDefaultOriginalPrice({
+        return migratedProducts.map((product) => ensureFocalVisionType(withDefaultOriginalPrice(removeAdminDashboardAttribution({
           ...product,
           lensConfiguration: product.lensConfiguration ?? getDefaultLensConfiguration(product),
-        })));
+        }))));
       }
     }
   } catch {
@@ -733,7 +750,9 @@ export function notifyProductsUpdate() {
 }
 
 export async function saveProducts(nextProducts: Product[]) {
-  const productsWithOldPrices = nextProducts.map(withDefaultOriginalPrice);
+  const productsWithOldPrices = nextProducts.map((product) =>
+    withDefaultOriginalPrice(removeAdminDashboardAttribution(product))
+  );
   products = productsWithOldPrices;
 
   if (typeof window !== "undefined") {
@@ -788,10 +807,10 @@ export async function hydrateProducts() {
     remoteProductData = migratedProducts;
   }
 
-  const remoteProducts = remoteProductData.map((product) => ensureFocalVisionType(withDefaultOriginalPrice({
+  const remoteProducts = remoteProductData.map((product) => ensureFocalVisionType(withDefaultOriginalPrice(removeAdminDashboardAttribution({
     ...product,
     lensConfiguration: product.lensConfiguration ?? getDefaultLensConfiguration(product),
-  })));
+  }))));
   products = remoteProducts;
   if (typeof window !== "undefined") {
     window.localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(remoteProducts));

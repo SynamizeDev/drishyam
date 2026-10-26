@@ -11,6 +11,7 @@ import MobileMenu from "@/components/MobileMenu";
 import CartDrawer from "@/components/CartDrawer";
 import { getStoredProducts, hydrateProducts, products as initialProducts } from "@/data/products";
 import { getCategoryProductIds, getSiteContent, hydrateSiteContent } from "@/lib/site-content";
+import { matchesGenderFilter } from "@/lib/product-filters";
 import { ACCESSORY_SUBCATEGORIES, Product } from "@/types/product";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
 
@@ -112,7 +113,7 @@ function ShopContent() {
 
     // Filter by Gender
     if (filters.gender) {
-      result = result.filter((p) => p.gender === filters.gender);
+      result = result.filter((product) => matchesGenderFilter(product, filters.gender));
     }
 
     // Filter by Shape

@@ -273,7 +273,7 @@ function ProductSectionPanel({
               {unselectedProducts.length === 0 ? "All products are already added!" : "No matching products found."}
             </p>
           ) : (
-            <div className="grid gap-2 max-h-52 overflow-y-auto sm:grid-cols-2">
+            <div className="grid max-h-52 gap-2 overflow-y-auto sm:grid-cols-2">
               {filteredUnselected.map((p) => (
                 <button
                   key={p.id}
@@ -302,7 +302,7 @@ function ProductSectionPanel({
             <p className="mt-1 text-xs text-[#111111]/30">Click "Add" above to pick products.</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="max-h-72 space-y-2 overflow-y-auto pr-2">
             {selectedProducts.map((p) => (
               <div
                 key={p.id}
@@ -1915,7 +1915,19 @@ export default function AdminPage() {
                                     <>
                                       <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Subtitle (optional)</span><input value={editingProductDraft.subtitle ?? ""} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, subtitle: event.target.value })} className={fieldClass} /></label>
                                       <label className="block"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Lens power (optional)</span><input value={editingProductDraft.lensPower ?? ""} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, lensPower: event.target.value })} placeholder="e.g. Plano, -1.00 to -6.00" className={fieldClass} /></label>
-                                      <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Lens details (optional, one item per line)</span><textarea value={editingProductDraft.lensDetails?.join("\n") ?? ""} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, lensDetails: event.target.value.split("\n").map((detail) => detail.trim()).filter(Boolean) })} rows={3} className={`${fieldClass} resize-y`} /></label>
+                                      <label className="block sm:col-span-2">
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">Displayed lens details (one item per line)</span>
+                                        <textarea
+                                          value={(editingProductDraft.lensDetails?.length ? editingProductDraft.lensDetails : editingProductDraft.details).join("\n")}
+                                          onChange={(event) => {
+                                            const details = event.target.value.split("\n").map((detail) => detail.trim()).filter(Boolean);
+                                            setEditingProductDraft({ ...editingProductDraft, lensDetails: details, details });
+                                          }}
+                                          rows={3}
+                                          className={`${fieldClass} resize-y`}
+                                        />
+                                        <span className="mt-1 block text-xs text-[#111111]/45">This list appears on the contact lens product page. Existing product details are shown here when no lens details have been set.</span>
+                                      </label>
                                     </>
                                   )}
                                   <label className="block sm:col-span-2"><span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]/55">{/^contact lens(e)?s?$/i.test(editingProductDraft.category.trim()) ? "Details / description" : "Description"}</span><textarea value={editingProductDraft.description} onChange={(event) => setEditingProductDraft({ ...editingProductDraft, description: event.target.value })} rows={3} className={`${fieldClass} resize-y`} /></label>

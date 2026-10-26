@@ -11,6 +11,7 @@ import CartDrawer from "@/components/CartDrawer";
 import { getStoredProducts, hydrateProducts, defaultProducts as initialProducts } from "@/data/products";
 import { getCategoryProductIds, getSiteContent, hydrateSiteContent } from "@/lib/site-content";
 import { frameTypeOptions, getProductFrameType } from "@/lib/frame-type";
+import { matchesGenderFilter } from "@/lib/product-filters";
 import { Product } from "@/types/product";
 import { SlidersHorizontal, ChevronDown, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -80,8 +81,7 @@ function EyeglassesContent() {
     
     if (filters.gender) {
       otherProducts = otherProducts.filter(
-        (product) =>
-          product.gender?.toLowerCase() === filters.gender.toLowerCase()
+        (product) => matchesGenderFilter(product, filters.gender)
       );
     }
     if (filters.shape) {

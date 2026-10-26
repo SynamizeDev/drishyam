@@ -227,6 +227,8 @@ export default function ProductDetailPage({ params }: PageProps) {
   const isLiked = isInWishlist(product.id);
   const isAccessory = product.category.trim().toLowerCase() === "accessories";
   const isContactLens = /^contact lenses?$/i.test(product.category.trim());
+  const displayedLensDetails = (product.lensDetails?.length ? product.lensDetails : product.details)
+    .filter((detail) => detail.trim().length > 0);
 
   const featureHighlights = isAccessory || isContactLens ? [] : [
     {
@@ -592,10 +594,10 @@ export default function ProductDetailPage({ params }: PageProps) {
                   Lens power: <span className="font-normal">{product.lensPower}</span>
                 </p>
               )}
-              {(product.lensDetails?.length ? product.lensDetails : product.details).length > 0 && (
+              {displayedLensDetails.length > 0 && (
                 <ul className="mt-3 space-y-2 text-sm text-charcoal/70">
-                  {(product.lensDetails?.length ? product.lensDetails : product.details).map((detail) => (
-                    <li key={detail} className="flex gap-2">
+                  {displayedLensDetails.map((detail, index) => (
+                    <li key={`${detail}-${index}`} className="flex gap-2">
                       <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-saffron" aria-hidden="true" />
                       <span>{detail}</span>
                     </li>
