@@ -226,7 +226,7 @@ export default function ProductDetailPage({ params }: PageProps) {
 
   const isLiked = isInWishlist(product.id);
   const isAccessory = product.category.trim().toLowerCase() === "accessories";
-  const isContactLens = /^contact lenses?$/i.test(product.category.trim());
+  const isContactLens = /contact\s*lens(?:e|es)?/i.test(product.category.trim());
   const displayedLensDetails = (product.lensDetails?.length ? product.lensDetails : product.details)
     .filter((detail) => detail.trim().length > 0);
 
@@ -394,14 +394,16 @@ export default function ProductDetailPage({ params }: PageProps) {
                     )}
                   </div>
 
-                  <ProductLensConfigurator
-                    product={product}
-                    onChange={(selection, pricing, valid) => {
-                      setConfigurationSelection(selection);
-                      setConfigurationPricing(pricing);
-                      setConfigurationValid(valid);
-                    }}
-                  />
+                  {!isContactLens && (
+                    <ProductLensConfigurator
+                      product={product}
+                      onChange={(selection, pricing, valid) => {
+                        setConfigurationSelection(selection);
+                        setConfigurationPricing(pricing);
+                        setConfigurationValid(valid);
+                      }}
+                    />
+                  )}
 
                   <div className="space-y-3">
                     <div className="flex gap-3">
